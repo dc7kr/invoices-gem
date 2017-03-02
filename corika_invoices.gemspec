@@ -9,15 +9,15 @@ Gem::Specification.new do |s|
   s.version     = CorikaInvoices::VERSION
   s.authors     = ["Karsten Richter"]
   s.email       = ["kr@corika.com"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of CorikaInvoices."
-  s.description = "TODO: Description of CorikaInvoices."
-  s.license     = "MIT"
+  s.homepage    = "http://www.corika.com"
+  s.summary     = "An invoice generation and archive tool using mongo DB for persistence"
+  s.description =  "An invoice generation and archive tool using mongo DB for persistence"
+  s.license     = "GPL"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "rails", "~> 4.2.5.1"
+  s.add_dependency "rails", "~>  4.1.7"
   s.add_dependency "mongoid", "~> 5.0.0"
 
   s.add_development_dependency "sqlite3"

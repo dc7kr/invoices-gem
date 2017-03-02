@@ -4,8 +4,9 @@ class Invoice
 
   field :number, type: String
   field :invoice_date, type: Date
-  field :pdf_filename
-  field :sepa_filename
+  field :invoice_type, type: String
+  field :pdf_filename, type: String
+  field :sepa_filename, type: String
 
   embeds_one :customer, class_name: "InvoiceCustomer"
   embeds_many :invoice_items, store_as: "items"
@@ -55,7 +56,7 @@ class Invoice
 
       tw.writeInvoice(self,"gs",year)
 
-      work_pdf_file = tw.gen_pdf("rechnung",datePrefix, self.customer.customer_id)
+      work_pdf_file = tw.gen_pdf(invoice_type,datePrefix, self.customer.customer_id)
 
       invoice_file = archive_file(tw.workdir,work_pdf_file,year)
 
@@ -88,7 +89,6 @@ class Invoice
     else
       dd_file = MailingFile.new(self.sepa_filename, self.sepa_filename, year.to_s)
     end
-
 
     dd_file
   end

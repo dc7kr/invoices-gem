@@ -1,0 +1,26 @@
+.block
+  .secondary-navigation
+    =render :partial=>'nav'
+  .content
+    %h2.title
+      = t("common.all")
+      = t("invoice",:count=>3)
+    .inner
+      %table.table
+        %thead
+          %tr
+            %th.first Domain
+            %th Domain type
+            %th Zoneversion
+            %th Gen dns
+            %th Gen web
+            %th Enable v6
+            %th Lastchange
+            %th Active
+            %th
+            %th.last &nbsp;
+        %tbody#invoices
+          =render @invoices
+      .actions-bar.wat-cf
+        .actions
+- content_for :sidebar, render(:partial => 'sidebar')

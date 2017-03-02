@@ -1,0 +1,23 @@
+.block
+  .content
+    %h2.title
+      = t("common.all")
+      = t("helpers.label.invoice_customer",:count=>3)
+    .inner
+      %table.table
+        %thead
+          %tr
+            %th.first CustomerID
+            %th Domain type
+            %th Zoneversion
+            %th Gen dns
+            %th Gen web
+            %th Enable v6
+            %th Lastchange
+            %th Active
+            %th
+            %th.last &nbsp;
+        %tbody#invoices
+          =render @invoices
+      .actions-bar.wat-cf
+        .actions

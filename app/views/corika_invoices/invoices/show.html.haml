@@ -1,0 +1,15 @@
+.block
+  .content
+    .inner
+      %h2 #{@invoice.number} 
+      =entity_row(@invoice,:invoice_date,:date)
+      =render @invoice.customer
+      %table.table
+        %tr
+          %th Count
+          %th Label
+          %th Price
+          %th Total
+        =render @invoice.invoice_items
+
+

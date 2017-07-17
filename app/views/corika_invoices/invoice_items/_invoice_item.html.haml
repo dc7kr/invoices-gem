@@ -1,5 +1,5 @@
 %tr
   %td=invoice_item.count
   %td=invoice_item.label
-  %td=invoice_item.price
-  %td=invoice_item.total
+  %td.currency=number_to_currency invoice_item.price, locale: :de
+  %td.currency=number_to_currency invoice_item.total, locale: :de

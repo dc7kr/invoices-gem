@@ -1,0 +1,20 @@
+!!!
+%html
+  %head
+    %title #{title}
+    = stylesheet_link_tag :application, 'data-turbolinks-track'=>true, media: :all
+    = javascript_include_tag :application, 'data-turbolinks-track'=>true
+    = csrf_meta_tags
+  %body
+    #container
+      #header{:class=>Rails.env}
+      #wrapper.wat-cf
+        #flash-message
+          = flash_messages
+        #main
+          = yield
+        #footer
+          .block
+            %p
+              Copyright &copy; 2011-#{Time.now.year} by Karsten Richter - rev. #{GIT_REVISION}
+

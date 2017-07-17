@@ -4,7 +4,12 @@ module CorikaInvoices
     include FileArchiveHelper
 
     def index
-      @invoices = Invoice.all
+      @invoices = Invoice.all.page(params[:page]).per(30) 
+      respond_to do |format|
+        format.html 
+        format.js
+        format.json { render @invoices, :format=> :json } 
+      end
     end
 
     def generation
@@ -23,7 +28,7 @@ module CorikaInvoices
 
       if invoice.sepa_filename.nil? then
         datePrefix = Time.now.strftime '%Y%m%d%H%M%S'
-        sw = SEPAWriter.new(datePrefix, CORIKA_SETTINGS)
+        sw = SEPAWriter.new(datePrefix, INVOICE_CONFIG)
 
         if ( invoice.customer.is_direct_debit? ) then
           sw.addBooking(invoice.customer,invoice.sum,invoice.number,"RCUR")
@@ -45,7 +50,11 @@ module CorikaInvoices
 
       invoice_file = @invoice.gen_pdf
 
-      send_file(invoice_file.full_path)
+      if invoice_file.nil? then
+        render :text=>"File could not be generated"
+      else
+        send_file(invoice_file.full_path)
+      end
     end
 
     def gen_for_month
@@ -57,12 +66,12 @@ module CorikaInvoices
         month = params[:month].to_i
       end
 
-      tw = TexWriter.new(CORIKA_SETTINGS)
+      tw = TexWriter.new(INVOICE_CONFIG)
       datePrefix = Time.now.strftime '%Y%m%d%H%M%S'
-      sw = SEPAWriter.new(datePrefix, CORIKA_SETTINGS)
+      sw = SEPAWriter.new(datePrefix, INVOICE_CONFIG)
 
       @domains = Domain.due_in(month)
-      sw = SEPAWriter.new(datePrefix, CORIKA_SETTINGS)
+      sw = SEPAWriter.new(datePrefix, INVOICE_CONFIG)
 
       @domains.each do |domain|
         invoice = domain.gen_invoice(month)
@@ -86,10 +95,10 @@ module CorikaInvoices
         params[:bic] = customer.bic
         params[:mandateRef] = customer.mandate_id
         params[:renr] = invoice.number
-        params[:our_iban] = CORIKA_SETTINGS["iban"]
-        params[:our_bank] = CORIKA_SETTINGS["bank"]
-        params[:our_bic]  = CORIKA_SETTINGS["bic"]
-        params[:creditorId] = CORIKA_SETTINGS["creditor_id"]
+        params[:our_iban] = INVOICE_CONFIG["iban"]
+        params[:our_bank] = INVOICE_CONFIG["bank"]
+        params[:our_bic]  = INVOICE_CONFIG["bic"]
+        params[:creditorId] = INVOICE_CONFIG["creditor_id"]
 
         InvoiceMailer.notify(domain.customer.email,invoice_file, nil, params).deliver
       end

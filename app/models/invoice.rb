@@ -4,13 +4,22 @@ class Invoice
 
   field :number, type: String
   field :invoice_date, type: Date
+  field :our_contact, type: String
   field :invoice_type, type: String
   field :pdf_filename, type: String
   field :sepa_filename, type: String
+  field :generator_session_id, type: String
 
   embeds_one :customer, class_name: "InvoiceCustomer"
   embeds_many :invoice_items, store_as: "items"
 
+  def considerItem(count, price,label)
+    if count.nil? or count == 0 then
+      return false
+    end
+
+    addItem(count,price,label)
+  end
 
   def addItem(count,price,label) 
     item = InvoiceItem.new
@@ -46,19 +55,31 @@ class Invoice
   def gen_pdf(tw=nil)
 
     invoice_file = nil
+    if self.invoice_date.nil? then 
+      self.invoice_date = Time.now
+    end
+
+    if self.our_contact.nil? then
+      self.our_contact = "default"
+    end
+    
     year = self.invoice_date.year 
 
     if self.pdf_filename.nil? then 
       if tw.nil? then 
-        tw = TexWriter.new(CORIKA_SETTINGS)
+        tw = InvoiceTexWriter.new
       end
       datePrefix = Time.now.strftime '%Y%m%d%H%M%S'
 
-      tw.writeInvoice(self,"gs",year)
+      tw.writeInvoice(self,self.our_contact,year)
 
       work_pdf_file = tw.gen_pdf(invoice_type,datePrefix, self.customer.customer_id)
 
       invoice_file = archive_file(tw.workdir,work_pdf_file,year)
+
+      if invoice_file.nil? then 
+        return nil
+      end
 
       self.pdf_filename = invoice_file.orig_filename
       self.save
@@ -69,27 +90,53 @@ class Invoice
     invoice_file
   end
 
-  def gen_sepa
+  def gen_sepa(sepa_writer=nil)
     year = self.invoice_date.year 
 
+    # if already generated simply return the file for download
+    if not self.sepa_filename.nil? then
+      return MailingFile.new(self.sepa_filename, self.sepa_filename, year.to_s)
+    end
+
     dd_file = nil
+    datePrefix = Time.now.strftime '%Y%m%d%H%M%S'
 
-    if self.sepa_filename.nil? then
-      datePrefix = Time.now.strftime '%Y%m%d%H%M%S'
-      sw = SEPAWriter.new(datePrefix, CORIKA_SETTINGS)
+    if sepa_writer.nil? then 
+      sepa_writer = SEPAWriter.new(datePrefix, INVOICE_CONFIG)
+    end
 
-      if ( invoice.customer.is_direct_debit? ) then
-        sw.addBooking(invoice.customer,invoice.sum,invoice.number,"RCUR")
+    if gen_sepa_booking(sepa_writer) then
+      dd_file = sepa_writer.generateFile
+
+      if not dd_file.nil? then
+        self.sepa_filename = dd_file.orig_filename 
+        self.save
       end
-
-      dd_file = sw.generateFile
-
-      self.sepa_file = dd_file.orig_filename 
-      self.save
-    else
-      dd_file = MailingFile.new(self.sepa_filename, self.sepa_filename, year.to_s)
     end
 
     dd_file
+  end
+
+  def make_distinct
+    if not Invoice.where(number: self.number).first.nil? then
+      suffix = 2;
+
+      self.number = self.number+"-"+suffix.to_s
+
+      while not Invoice.where(number: self.number).first.nil?  do
+        suffix +=1  
+      end
+    end
+  end
+
+  private
+  def gen_sepa_booking(sepa_writer)
+    dd_file = nil
+    if ( self.customer.is_direct_debit? ) then
+      sepa_writer.addBooking(self.customer,self.sum,self.number,"RCUR")
+      return true
+    else
+      false
+    end
   end
 end

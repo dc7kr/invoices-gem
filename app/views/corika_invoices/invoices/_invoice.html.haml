@@ -1,10 +1,10 @@
 %tr
-  %td=link_to invoice, invoice.id
+  %td=link_to invoice.id, invoice
   %td=invoice.number
   %td=invoice.invoice_date
-  %td=number_to_currency invoice.net_sum, locale: :de
-  %td=invoice.sum
+  %td.currency=number_to_currency invoice.net_sum, locale: :de
+  %td.currency=number_to_currency invoice.sum, locale: :de
   %td
     =link_to_show invoice
-    =link_to "PDF",gen_pdf_invoice_path(invoice)
-    =link_to "SEPA",gen_sepa_invoice_path(invoice)
+    =link_to "PDF",gen_pdf_invoice_path(invoice), :class=> "btn btn-default btn-xs"
+    =link_to "SEPA",gen_sepa_invoice_path(invoice),:class=> "btn btn-default btn-xs"

@@ -5,8 +5,6 @@ class InvoiceItem
   field :price, type: Float
   field :label, type: String
 
-  belongs_to :invoice
-
   validates_presence_of :count,:price,:label
 
   def self.create(count,price,label)

@@ -13,9 +13,13 @@ class InvoiceCustomer
   field :email, type: String
   field :iban, type: String
   field :bic, type: String
+  field :account_owner, type: String
   field :company, type: String
   field :mandate_id, type: String
   field :sig_date, type: Date
+  field :direct_debit, type: Boolean
+  field :entity_type, type: String
+  field :entity_id, type: Integer
 
 
   def full_name
@@ -23,7 +27,7 @@ class InvoiceCustomer
   end
 
   def is_direct_debit?
-    not ( iban.blank?  or bic.blank?)
+    direct_debit and not ( iban.blank?  or bic.blank?)
   end
 
   def account_owner
@@ -32,5 +36,13 @@ class InvoiceCustomer
     else
       company
     end
+  end
+  def entity=(entity)
+    self.entity_type= entity.class.name
+    self.entity_id = entity.id
+  end
+  
+  def entity
+    entity_type.constantize.find(entity_id)
   end
 end

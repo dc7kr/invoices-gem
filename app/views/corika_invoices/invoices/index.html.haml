@@ -6,21 +6,19 @@
       = t("common.all")
       = t("invoice",:count=>3)
     .inner
+      #entry_info
+        = page_entries_info @invoices
       %table.table
         %thead
           %tr
-            %th.first Domain
-            %th Domain type
-            %th Zoneversion
-            %th Gen dns
-            %th Gen web
-            %th Enable v6
-            %th Lastchange
-            %th Active
-            %th
+            %th.first ID
+            %th=t("invoice.invoice_number")
+            %th=t("invoice.invoice_date")
+            %th=t("invoice.sum_netto")
+            %th=t("invoice.sum_brutto")
             %th.last &nbsp;
         %tbody#invoices
           =render @invoices
-      .actions-bar.wat-cf
-        .actions
+      #paginator
+        = paginate @invoices, { :remote=>true, :type=>"script"}
 - content_for :sidebar, render(:partial => 'sidebar')

@@ -1,0 +1,36 @@
+de:
+  invoice: &invoice_labels
+    one: Rechnung
+    other: Rechnungen
+    invoice_type: Rechnungs-Typ
+    invoice_date: Rechnungs-Datum
+    invoice_number: Re.-Nr. 
+    sum_brutto: Summe (brutto)
+    sum_netto: Summe (netto)
+  invoice_item: &invoice_item_labels
+    one: Rechnungselement
+    other: Rechnungselemente
+    count: Anzahl
+    label: Bezeichnung
+    price: Einzelpreis
+    total: Gesamtpreis
+  invoice_customer: &invoice_customer_labels
+    company: Firmenname
+    first_name: Vorname
+    last_name: Nachname
+    street: Straße
+    zip: PLZ
+    city: Ort
+    country: Land
+    email: E-Mail
+    iban: IBAN
+    bic: BIC    
+
+  helpers:
+    label:
+      invoice: 
+        <<: *invoice_labels
+      invoice_item: 
+        <<: *invoice_item_labels
+      invoice_customer: 
+        <<: *invoice_customer_labels

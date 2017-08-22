@@ -42,6 +42,10 @@ class InvoiceCustomer
     self.entity_type= entity.class.name
     self.entity_id = entity.id
   end
+
+  def entity
+    entity_type.constantize.find(entity_id)
+  end
   
   def mandate_id
       INVOICE_CONFIG[:mandate_prefix]+"#{customer_id}"

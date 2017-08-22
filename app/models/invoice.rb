@@ -121,11 +121,14 @@ class Invoice
     if not Invoice.where(number: self.number).first.nil? then
       suffix = 2;
 
-      self.number = self.number+"-"+suffix.to_s
+      number = self.number+"-"+suffix.to_s
 
-      while not Invoice.where(number: self.number).first.nil?  do
+      while not Invoice.where(number: number).first.nil?  do
         suffix +=1  
+        number = self.number+"-"+suffix.to_s
       end
+
+      self.number = number
     end
   end
 

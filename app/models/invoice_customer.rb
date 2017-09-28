@@ -47,12 +47,5 @@ class InvoiceCustomer
     entity_type.constantize.find(entity_id)
   end
   
-  def mandate_id
-      INVOICE_CONFIG[:mandate_prefix]+"#{customer_id}"
-  end
-
-  def sig_date
-    Date.new(2014,1,1)
-  end
 end
 

@@ -1,4 +1,5 @@
 module CorikaInvoices
+  #  NOTE: inherits from CorikaInvoices::ApplicationController 
   class InvoicesController < ApplicationController
 
     include FileArchiveHelper
@@ -57,57 +58,7 @@ module CorikaInvoices
       end
     end
 
-    def gen_for_month
-      year = Time.now.year
-
-      if params[:month].nil?
-        month= Time.now.month
-      else
-        month = params[:month].to_i
-      end
-
-      tw = TexWriter.new(INVOICE_CONFIG)
-      datePrefix = Time.now.strftime '%Y%m%d%H%M%S'
-      sw = SEPAWriter.new(datePrefix, INVOICE_CONFIG)
-
-      @domains = Domain.due_in(month)
-      sw = SEPAWriter.new(datePrefix, INVOICE_CONFIG)
-
-      @domains.each do |domain|
-        invoice = domain.gen_invoice(month)
-        if ( domain.customer.is_direct_debit? ) then
-          sw.addBooking(invoice.customer,invoice.sum,invoice.number,"RCUR")
-        end
-
-        invoice_file = invoice.gen_pdf(tw)
-
-        interval = domain.tariff.interval-1
-        to = Date.new(year,month,1)+interval.month
-
-        customer = domain.customer
-
-        params[:salutation] = translated_salutation(customer)
-        params[:domain]  = domain.domain
-        params[:from] = "#{month}/#{year}"
-        params[:to] = "#{to.month}/#{to.year}"
-        params[:directDebit] = customer.is_direct_debit?
-        params[:iban] = customer.iban
-        params[:bic] = customer.bic
-        params[:mandateRef] = customer.mandate_id
-        params[:renr] = invoice.number
-        params[:our_iban] = INVOICE_CONFIG["iban"]
-        params[:our_bank] = INVOICE_CONFIG["bank"]
-        params[:our_bic]  = INVOICE_CONFIG["bic"]
-        params[:creditorId] = INVOICE_CONFIG["creditor_id"]
-
-        InvoiceMailer.notify(domain.customer.email,invoice_file, nil, params).deliver
-      end
-
-      dd_file = sw.generateFile
-    end
-
     def translated_salutation(customer)
-
       gender = nil
       if (customer.anrede == 0 ) then
         gender ="M"

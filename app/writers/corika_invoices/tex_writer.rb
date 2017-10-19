@@ -1,26 +1,46 @@
 module CorikaInvoices
   class TexWriter 
-    attr_accessor :workdir,:tooldir
+    attr_accessor :config
 
     include ApplicationHelper
     include ActionView::Helpers::NumberHelper
 
 
-    def initialize
-      self.workdir = INVOICE_CONFIG['invoice_workdir']
-      self.tooldir = INVOICE_CONFIG['invoice_tool_dir']
+    def initialize(config)
+
+      if config.work_dir.nil? 
+        throw :invoice_work_dir_nil
+      end
+
+      if config.tool_dir.nil? 
+        throw :invoice_tool_dir_nil
+      end
+
+      self.config=config
     end
 
 
-    def writeInvoice(invoice,contact,year) 
-      File.open(self.workdir+"/variables.tex", 'w') do |f| 
+    def writeInvoice(invoice,contact_id,year) 
+      contact = CorikaInvoices::Contact.new(INVOICE_CONTACT_HASH[contact_id])
+
+      if contact.nil?
+        Rails.logger.warn("CONTACT is nil! aborting")
+        return
+      end
+
+      if not contact.is_valid?
+        Rails.logger.warn("Contact is invalid (data missing)")
+        return
+      end
+
+      File.open(config.work_dir+"/variables.tex", 'w') do |f| 
         writeOurData(f,contact)
         writeCommon(f,invoice.customer)
         f.write('\newcommand{\jahr}{'+year.to_s+"}\n")
         f.write('\newcommand{\renummer}{'+invoice.number+"}\n")
         f.write('\newcommand{\zweck}{'+invoice.number+"}\n")
       end
-      File.open(self.workdir+"/posten.tex",'w') do |f|
+      File.open(config.work_dir+"/posten.tex",'w') do |f|
         invoice.items.each do |i|
           writeInvoiceItem(f,i.count,i.price,i.label)
           Rails.logger.debug("wrote invoice item: #{i.count}x#{i.price}:#{i.label}")
@@ -44,7 +64,7 @@ module CorikaInvoices
     end
 
     def write(member,year) 
-      File.open(self.workdir+"/variables.tex", 'w') do |f| 
+      File.open(config.work_dir+"/variables.tex", 'w') do |f| 
         writeOurData(f,'gs');
         f.write('\newcommand{\jahr}{'+year.to_s+"}\n")
         writeCommon(f,member.to_customer)
@@ -59,7 +79,7 @@ module CorikaInvoices
         f.write('\newcommand{\bic}{'+customer.bic.to_s+"}\n")
 
         f.write('\newcommand{\mandateRef}{'+customer.mandate_id.to_s+"}\n")
-        f.write('\newcommand{\glaeubigerId}{'+INVOICE_CONFIG["creditor_id"]+"}\n")
+        f.write('\newcommand{\glaeubigerId}{'+config.creditor_id+"}\n")
       else
         f.write('\newcommand{\directDebit}{0}'+"\n")
       end
@@ -108,32 +128,33 @@ module CorikaInvoices
       f.write('\newcommand{\redatum}{'+I18n.l(Time.now.to_date , :format => :long)+"}\n")
     end
 
-    def writeOurData(f,contact) 
-      our_contact = INVOICE_CONFIG['contacts'][contact]
+    def writeOurData(f,our_contact) 
 
-      f.write('\newcommand{\myFirma}{'+INVOICE_CONFIG['company']+"}\n")
-      f.write('\newcommand{\myFirmaShort}{'+INVOICE_CONFIG['companyShort']+"}\n")
-      f.write('\newcommand{\myKonto}{'+INVOICE_CONFIG['konto']+"}\n")
-      f.write('\newcommand{\myBLZ}{'+INVOICE_CONFIG['blz']+"}\n")
-      if ( our_contact['iban'].nil? ) then
-        f.write('\newcommand{\myBank}{'+INVOICE_CONFIG['bank']+"}\n")
-        f.write('\newcommand{\myIBAN}{'+INVOICE_CONFIG['iban']+"}\n")
-        f.write('\newcommand{\myBIC}{'+INVOICE_CONFIG['bic']+"}\n")
+      f.write('\newcommand{\myFirma}{'+config.company+"}\n")
+      f.write('\newcommand{\myFirmaShort}{'+config.company_short+"}\n")
+
+      # contact can override the bank account for DD
+
+      if not our_contact.has_bank_account? then
+        # use default bank account
+        f.write('\newcommand{\myBank}{'+config.bank+"}\n")
+        f.write('\newcommand{\myIBAN}{'+config.iban+"}\n")
+        f.write('\newcommand{\myBIC}{'+config.bic+"}\n")
       else
-        f.write('\newcommand{\myIBAN}{'+our_contact['iban']+"}\n")
-        f.write('\newcommand{\myBIC}{'+our_contact['bic']+"}\n")
-        f.write('\newcommand{\myBank}{'+our_contact['bank']+"}\n")
+        f.write('\newcommand{\myIBAN}{'+our_contact.iban+"}\n")
+        f.write('\newcommand{\myBIC}{'+our_contact.bic+"}\n")
+        f.write('\newcommand{\myBank}{'+our_contact.bank+"}\n")
       end
 
-      f.write('\newcommand{\myPhone}{'+our_contact['phone']+"}\n")
-      f.write('\newcommand{\myFax}{'+our_contact['fax']+"}\n")
-      f.write('\newcommand{\myMail}{'+our_contact['mail']+"}\n")
-      f.write('\newcommand{\myName}{'+our_contact['name']+"}\n")
-      f.write('\newcommand{\myDept}{'+our_contact['dept']+"}\n")
-      f.write('\newcommand{\myStreet}{'+our_contact['street']+"}\n")
-      f.write('\newcommand{\myPLZ}{'+our_contact['plz']+"}\n")
-      f.write('\newcommand{\myOrt}{'+our_contact['ort']+"}\n")
-      f.write('\newcommand{\myJob}{'+our_contact['job']+"}\n")
+      f.write('\newcommand{\myPhone}{'+our_contact.phone+"}\n")
+      f.write('\newcommand{\myFax}{'+our_contact.fax+"}\n")
+      f.write('\newcommand{\myMail}{'+our_contact.mail+"}\n")
+      f.write('\newcommand{\myName}{'+our_contact.name+"}\n")
+      f.write('\newcommand{\myDept}{'+our_contact.dept+"}\n")
+      f.write('\newcommand{\myStreet}{'+our_contact.street+"}\n")
+      f.write('\newcommand{\myPLZ}{'+our_contact.plz+"}\n")
+      f.write('\newcommand{\myOrt}{'+our_contact.ort+"}\n")
+      f.write('\newcommand{\myJob}{'+our_contact.job+"}\n")
     end
 
 
@@ -150,9 +171,7 @@ module CorikaInvoices
     end
 
     def moveGeneratedFiles(datePrefix)
-      workDir = INVOICE_CONFIG['invoice_workdir']
-      archiveDir= INVOICE_CONFIG['invoice_archive_dir']
-      tgtDir= archiveDir +"/"+String(Time.now.year)
+      tgtDir= config.archive_dir +"/"+String(Time.now.year)
 
       shortprefix = Time.now.strftime("%Y%m%d-")
 
@@ -160,8 +179,8 @@ module CorikaInvoices
         FileUtils.mkdir tgtDir
       end
 
-      Dir.chdir(workDir)
-      Dir.entries(workDir).each { |file|
+      Dir.chdir(config.work_dir)
+      Dir.entries(config.work_dir).each { |file|
         if file.start_with? datePrefix or file.start_with? shortprefix then
           FileUtils.mv file, tgtDir+"/"
         end
@@ -170,9 +189,18 @@ module CorikaInvoices
 
     def gen_pdf(invoice_type, datePrefix, customer_id)
       out_file = "#{datePrefix}-#{customer_id}-#{invoice_type}.pdf"
-      batch = File.join(self.tooldir, "bin/rechnung.sh")
+      batch = File.join(config.tool_dir, "bin/invoice.sh")
       cli = "#{batch} #{invoice_type} #{datePrefix} #{customer_id}"
       Rails.logger.debug("Exec: #{cli}")
+
+      env = Hash.new
+      env["ARCHIVE_DIR"]= self.config.archive_dir
+
+      env["TEX"]= config.tex_exe
+      env["BASEDIR"]=config.tex_dir
+      env["OUT_DIR"]=config.work_dir
+      env["ARCHIVE_DIR"]=config.archive_dir
+      env["OUT_DIR"]= self.work_dir
       system(cli)
 
       out_file
@@ -181,5 +209,9 @@ module CorikaInvoices
     def tex_escape(text)
       text.gsub(/\"([a-zA-z0-9]+)\"/, '\glqq \1\grqq ')
     end
+  end
+
+  private 
+  def contact_vaild?(contact) 
   end
 end

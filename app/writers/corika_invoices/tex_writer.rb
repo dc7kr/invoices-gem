@@ -200,7 +200,7 @@ module CorikaInvoices
       env["BASEDIR"]=config.tex_dir
       env["OUT_DIR"]=config.work_dir
       env["ARCHIVE_DIR"]=config.archive_dir
-      env["OUT_DIR"]= self.work_dir
+      env["OUT_DIR"]= config.work_dir
       system(cli)
 
       out_file

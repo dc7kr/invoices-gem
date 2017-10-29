@@ -1,6 +1,6 @@
 module CorikaInvoices
   class Config 
-    attr_accessor  :work_dir, :tool_dir, :archive_dir,:creditor_id,:company,:company_short,:iban,:bic,:bank, :tex_exe, :tex_dir
+    attr_accessor  :work_dir, :tool_dir, :archive_dir,:creditor_id,:company,:company_short,:iban,:bic,:bank, :tex_exe, :tex_dir, :tex_branding_dir
 
     def initialize(hash) 
 

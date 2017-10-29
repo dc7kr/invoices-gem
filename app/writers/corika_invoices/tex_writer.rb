@@ -194,13 +194,13 @@ module CorikaInvoices
       Rails.logger.debug("Exec: #{cli}")
 
       env = Hash.new
-      env["ARCHIVE_DIR"]= self.config.archive_dir
-
       env["TEX"]= config.tex_exe
-      env["BASEDIR"]=config.tex_dir
-      env["OUT_DIR"]=config.work_dir
-      env["ARCHIVE_DIR"]=config.archive_dir
+      env["TEX_DIR"]= config.tex_dir
+      env["TEX_BRANDING_DIR"]= config.tex_branding_dir
       env["OUT_DIR"]= config.work_dir
+
+      ENV.update(env)
+
       system(cli)
 
       out_file

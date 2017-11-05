@@ -28,17 +28,18 @@ module CorikaInvoices
       dd_file = nil
 
       if invoice.sepa_filename.nil? then
-        datePrefix = Time.now.strftime '%Y%m%d%H%M%S'
-        sw = SEPAWriter.new(datePrefix, INVOICE_CONFIG)
+        dd_file = invoice.gen_sepa
 
-        if ( invoice.customer.is_direct_debit? ) then
-          sw.addBooking(invoice.customer,invoice.sum,invoice.number,"RCUR")
+        if not dd_file.nil? 
+          invoice.sepa_filename = dd_file.orig_filename 
+          invoice.save
+        else
+          Rails.logger.error("SEPA file could not be generated")
+
+          redirect_to invoices_path, notice: 'SEPA file could not be created'
+          return
         end
 
-        dd_file = sw.generateFile
-
-        invoice.sepa_filename = dd_file.orig_filename 
-        invoice.save
       else
         dd_file = MailingFile.new(invoice.sepa_filename, invoice.pdf_filename, year.to_s)
       end

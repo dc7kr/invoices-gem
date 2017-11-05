@@ -95,24 +95,36 @@ module CorikaInvoices
     def gen_sepa(sepa_writer=nil)
       year = self.invoice_date.year 
 
-      # if already generated simply return the file for download
-      if not self.sepa_filename.nil? then
-        return MailingFile.new(self.sepa_filename, self.sepa_filename, year.to_s)
-      end
+      batch = false
 
       dd_file = nil
       datePrefix = Time.now.strftime '%Y%m%d%H%M%S'
 
       if sepa_writer.nil? then 
         sepa_writer = SEPAWriter.new(datePrefix, INVOICE_CONFIG)
+      else 
+        batch=true
+      end
+
+      # if already generated simply return the file for download
+      if not self.sepa_filename.nil? then
+        if batch
+          return false
+        else
+          return MailingFile.new(self.sepa_filename, self.sepa_filename, year.to_s)
+        end
       end
 
       if gen_sepa_booking(sepa_writer) then
-        dd_file = sepa_writer.generateFile
+        if batch 
+          return true
+        else
+          dd_file = sepa_writer.generate_file
 
-        if not dd_file.nil? then
-          self.sepa_filename = dd_file.orig_filename 
-          self.save
+          if not dd_file.nil? then
+            self.sepa_filename = dd_file.orig_filename 
+            self.save
+          end
         end
       end
 
@@ -134,11 +146,10 @@ module CorikaInvoices
       end
     end
 
-    private
     def gen_sepa_booking(sepa_writer)
       dd_file = nil
       if ( self.customer.is_direct_debit? ) then
-        sepa_writer.addBooking(self.customer,self.sum,self.number,"RCUR")
+        sepa_writer.add_direct_debit(self.customer,self.sum,self.number,"RCUR")
         return true
       else
         false

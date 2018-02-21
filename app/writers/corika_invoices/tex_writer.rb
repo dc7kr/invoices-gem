@@ -72,7 +72,7 @@ module CorikaInvoices
     end 
 
     def writeCommon(f,customer)
-      f.write('\newcommand{\mglnr}{'+customer.customer_id.to_s+"}\n")
+      f.write('\newcommand{\customerId}{'+customer.customer_id.to_s+"}\n")
       if ( customer.is_direct_debit? ) then
         f.write('\newcommand{\directDebit}{1}'+"\n")
         f.write('\newcommand{\iban}{'+customer.iban.to_s+"}\n")
@@ -111,6 +111,11 @@ module CorikaInvoices
       end
 
       f.write('\newcommand{\country}{'+country_en+"}\n")
+      if customer.email.nil? then
+        f.write('\newcommand{\email}{0}'+"\n")
+      else
+        f.write('\newcommand{\email}{'+customer.email+"}\n")
+      end
 
       lastname=""
       if (customer.last_name) 

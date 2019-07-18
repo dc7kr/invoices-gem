@@ -120,9 +120,9 @@ module CorikaInvoices
       lastname=""
       if (customer.last_name) 
           if ( customer.salutation == 'M' ) then
-            f.write('\newcommand{\anredetxt}{r Herr '+customer.name+"}\n")
+            f.write('\newcommand{\anredetxt}{r Herr '+customer.last_name+"}\n")
           elsif ( customer.salutation == 'W' ) then
-            f.write('\newcommand{\anredetxt}{ Frau '+customer.name+"}\n")
+            f.write('\newcommand{\anredetxt}{ Frau '+customer.last_name+"}\n")
           else
             f.write('\newcommand{\anredetxt}{ Damen und Herren}'+"\n")
           end
@@ -212,7 +212,7 @@ module CorikaInvoices
     end
 
     def tex_escape(text)
-      text.gsub(/\"([a-zA-z0-9]+)\"/, '\glqq \1\grqq ')
+      text.gsub(/\"([a-zA-z0-9 ]+)\"/, '\glqq \1\grqq ').gsub(/\&/,'\\\&').gsub(/_/,'\\_').gsub(/"/,'\\dq')
     end
   end
 

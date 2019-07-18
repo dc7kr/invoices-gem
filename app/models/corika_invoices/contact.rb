@@ -1,6 +1,6 @@
 module CorikaInvoices
   class Contact
-    attr_accessor :iban, :bic, :phone, :fax, :mail, :name, :dept, :street, :plz, :ort, :job
+    attr_accessor :iban, :bic, :phone, :fax, :mail, :name, :dept, :street, :plz, :ort, :job, :bank
 
     def initialize(hash)
 

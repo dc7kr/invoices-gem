@@ -212,7 +212,7 @@ module CorikaInvoices
     end
 
     def tex_escape(text)
-      text.gsub(/\"([a-zA-z0-9 ]+)\"/, '\glqq \1\grqq ').gsub(/\&/,'\\\&').gsub(/_/,'\\_').gsub(/"/,'\\dq')
+      text.gsub(/\"([a-zA-z0-9 ]+)\"/, '\glqq \1\grqq ').gsub(/\&/,'\\\&').gsub(/_/,'\\_').gsub(/"/,'\\dq ')
     end
   end
 

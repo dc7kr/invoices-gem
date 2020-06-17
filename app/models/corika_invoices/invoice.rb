@@ -7,6 +7,7 @@ module CorikaInvoices
     field :invoice_date, type: Date
     field :our_contact, type: String
     field :invoice_type, type: String
+    field :tax_type, type: String
     field :pdf_filename, type: String
     field :sepa_filename, type: String
     field :generator_session_id, type: String

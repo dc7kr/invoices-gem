@@ -11,6 +11,8 @@ module CorikaInvoices
     field :pdf_filename, type: String
     field :sepa_filename, type: String
     field :generator_session_id, type: String
+    field :taxrate, type: Integer
+    field :taxrate_reduced, type: Integer
 
     embeds_one :customer
     embeds_many :invoice_items, store_as: "items"
@@ -33,7 +35,7 @@ module CorikaInvoices
     end
 
     def net_sum
-      sum/1.19
+      sum/(taxrate/100.0+1)
     end
 
     def sum

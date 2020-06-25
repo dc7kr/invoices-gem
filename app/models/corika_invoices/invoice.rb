@@ -35,7 +35,14 @@ module CorikaInvoices
     end
 
     def net_sum
-      sum/(taxrate/100.0+1)
+      tr = nil
+      if taxrate.nil? then
+        tr = sum/INVOICE_CONFIG.taxrate
+      else
+        tr = taxrate
+      end
+
+      sum/(tr/100.0+1)
     end
 
     def sum

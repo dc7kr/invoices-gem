@@ -40,8 +40,8 @@ module CorikaInvoices
         f.write('\newcommand{\renummer}{'+invoice.number+"}\n")
         f.write('\newcommand{\zweck}{'+invoice.number+"}\n")
         f.write('\newcommand{\rechnungTyp}{'+invoice.tax_type+"}\n")
-        f.write('\newcommand{\steuerNormal}{'+invoice.taxrate+"}\n")
-        f.write('\newcommand{\steuerReduziert}{'+invoice.taxrate_reduced+"}\n")
+        f.write('\newcommand{\steuerNormal}{'+invoice.taxrate.to_s+"}\n")
+        f.write('\newcommand{\steuerReduziert}{'+invoice.taxrate_reduced.to_s+"}\n")
       end
       File.open(config.work_dir+"/posten.tex",'w') do |f|
         invoice.items.each do |i|

@@ -163,7 +163,7 @@ module CorikaInvoices
       f.write('\newcommand{\myPLZ}{'+our_contact.plz+"}\n")
       f.write('\newcommand{\myOrt}{'+our_contact.ort+"}\n")
       f.write('\newcommand{\myJob}{'+our_contact.job+"}\n")
-      f.write('\newCommand{\brko}{'+config.header_file+"}\n")
+      f.write('\newcommand{\brko}{'+config.header_file+"}\n")
     end
 
 

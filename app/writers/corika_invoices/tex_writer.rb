@@ -1,12 +1,12 @@
 module CorikaInvoices
   class TexWriter 
-    attr_accessor :config
+    attr_accessor :config,:callback
 
     include ApplicationHelper
     include ActionView::Helpers::NumberHelper
 
 
-    def initialize(config)
+    def initialize(config,callback=nil)
 
       if config.work_dir.nil? 
         throw :invoice_work_dir_nil
@@ -17,6 +17,7 @@ module CorikaInvoices
       end
 
       self.config=config
+      self.callback=callback
     end
 
 
@@ -36,6 +37,9 @@ module CorikaInvoices
       File.open(config.work_dir+"/variables.tex", 'w') do |f| 
         writeOurData(f,contact)
         writeCommon(f,invoice.customer)
+        if not self.callback.nil?
+          self.callback.writeAdditionalVars(f)
+        end
         f.write('\newcommand{\jahr}{'+year.to_s+"}\n")
         f.write('\newcommand{\renummer}{'+invoice.number+"}\n")
         f.write('\newcommand{\zweck}{'+invoice.number+"}\n")
@@ -45,25 +49,37 @@ module CorikaInvoices
       end
       File.open(config.work_dir+"/posten.tex",'w') do |f|
         invoice.items.each do |i|
-          writeInvoiceItem(f,i.count,i.price,i.label)
+          writeInvoiceItem(f,i.count,i.price,i.label,i.net_price)
           Rails.logger.debug("wrote invoice item: #{i.count}x#{i.price}:#{i.label}")
         end
       end
     end
 
-    def writeInvoiceItem(file, count, tariff, label)
+    def writeInvoiceItem(file, count, tariff, label, net_price)
       if (count.nil? or count == 0 )  then
         Rails.logger.info("omitting #{label} item as count was nil or 0")
         return
       end
-      amount = '%.2f' % tariff;
+      amount = '%.2f' % tariff.abs;
       amount = amount.gsub('.',',')
 
+
+      tex_label =  tex_escape(label)
+
       if tariff < 0 then
-        file.write('\Anzahlung{'+amount+"}\n")
+        file.write('\Gutschrift{'+tex_label+'}{'+amount+"}")
       else
-        file.write('\Artikel{'+String(count)+'}{'+label+'}{'+amount+"}\n")
+        file.write('\Artikel{'+String(count)+'}{'+tex_label+'}{'+amount+"}")
       end
+
+      if ( not net_price.nil? and  net_price !=0) 
+        net_amount = '%.2f' % net_price.abs;
+        net_amount = net_amount.gsub('.',',')
+        file.write('{'+net_amount+"}\n")
+      else
+        file.write("\n")
+      end
+
     end
 
     def write(member,year) 
@@ -121,7 +137,7 @@ module CorikaInvoices
       end
 
       lastname=""
-      if (customer.last_name) 
+      if not customer.last_name.nil?
           if ( customer.salutation == 'M' ) then
             f.write('\newcommand{\anredetxt}{r Herr '+customer.last_name+"}\n")
           elsif ( customer.salutation == 'W' ) then
@@ -199,13 +215,15 @@ module CorikaInvoices
       out_file = "#{datePrefix}-#{customer_id}-#{invoice_type}.pdf"
       batch = File.join(config.tool_dir, "bin/invoice.sh")
       cli = "#{batch} #{invoice_type} #{datePrefix} #{customer_id}"
-      Rails.logger.debug("Exec: #{cli}")
 
       env = Hash.new
       env["TEX"]= config.tex_exe
       env["TEX_DIR"]= config.tex_dir
       env["TEX_BRANDING_DIR"]= config.tex_branding_dir
       env["OUT_DIR"]= config.work_dir
+      
+      Rails.logger.debug("Env: #{env}")
+      Rails.logger.debug("Exec: #{cli}")
 
       ENV.update(env)
 
@@ -215,7 +233,7 @@ module CorikaInvoices
     end
 
     def tex_escape(text)
-      text.gsub(/\"([a-zA-z0-9 ]+)\"/, '\glqq \1\grqq ').gsub(/\&/,'\\\&').gsub(/_/,'\\_').gsub(/"/,'\\dq ')
+      text.gsub(/\"([a-zA-z0-9 ]+)\"/, '``\1\'\'').gsub(/\&/,'\\\&').gsub(/_/,'\\_').gsub(/"/,'\\dq ')
     end
   end
 

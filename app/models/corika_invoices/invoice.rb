@@ -89,6 +89,10 @@ module CorikaInvoices
 
         invoice_file = archive_file(INVOICE_CONFIG.work_dir,work_pdf_file,year)
 
+
+        Rails.logger.debug("Work_pdf: #{invoice_file}")
+        Rails.logger.debug("Archived: #{work_pdf_file}")
+
         if invoice_file.nil? then 
           return nil
         end

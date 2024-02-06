@@ -115,7 +115,7 @@ module CorikaInvoices
       datePrefix = Time.now.strftime '%Y%m%d%H%M%S'
 
       if sepa_writer.nil? then 
-        sepa_writer = SEPAWriter.new(datePrefix, INVOICE_CONFIG)
+        sepa_writer = SepaWriter.new(datePrefix, INVOICE_CONFIG)
       else 
         batch=true
       end

@@ -13,6 +13,7 @@ module CorikaInvoices
     field :generator_session_id, type: String
     field :taxrate, type: Integer
     field :taxrate_reduced, type: Integer
+    field :booking_year, type: Integer
 
     embeds_one :customer
     embeds_many :invoice_items, store_as: "items"
@@ -34,7 +35,7 @@ module CorikaInvoices
       invoice_items << item
     end
 
-    def net_sum
+    def net_sum_tax
       tr = nil
       if taxrate.nil? then
         tr = sum/INVOICE_CONFIG.taxrate
@@ -43,6 +44,15 @@ module CorikaInvoices
       end
 
       sum/(tr/100.0+1)
+    end
+
+    def net_sum
+      sum=0.0
+      invoice_items.each do  |item|
+        sum+=item.count*item.net_price
+      end
+
+      sum
     end
 
     def sum
@@ -62,7 +72,7 @@ module CorikaInvoices
       invoice_items << item
     end
 
-
+    # TW is either a TexWriter or TexWriterCallback instance
     def gen_pdf(tw=nil)
 
       invoice_file = nil
@@ -74,13 +84,21 @@ module CorikaInvoices
         Rails.logger.warn("setting contact to default")
         self.our_contact = "default"
       end
-      
-      year = self.invoice_date.year 
+     
+      year = nil
+      if self.booking_year.nil?  
+        year = self.invoice_date.year 
+      else
+        year = self.booking_year
+      end
 
       if self.pdf_filename.nil? then 
         if tw.nil? then 
           tw = CorikaInvoices::TexWriter.new(INVOICE_CONFIG)
+        elsif tw.is_a? TexWriterCallback
+          tw = CorikaInvoices::TexWriter.new(INVOICE_CONFIG,twc)
         end
+
         datePrefix = Time.now.strftime '%Y%m%d%H%M%S'
 
         tw.writeInvoice(self,self.our_contact,year)
@@ -88,6 +106,10 @@ module CorikaInvoices
         work_pdf_file = tw.gen_pdf(invoice_type,datePrefix, self.customer.customer_id)
 
         invoice_file = archive_file(INVOICE_CONFIG.work_dir,work_pdf_file,year)
+
+
+        Rails.logger.debug("Work_pdf: #{invoice_file}")
+        Rails.logger.debug("Archived: #{work_pdf_file}")
 
         if invoice_file.nil? then 
           return nil
@@ -111,7 +133,7 @@ module CorikaInvoices
       datePrefix = Time.now.strftime '%Y%m%d%H%M%S'
 
       if sepa_writer.nil? then 
-        sepa_writer = SEPAWriter.new(datePrefix, INVOICE_CONFIG)
+        sepa_writer = SepaWriter.new(datePrefix, INVOICE_CONFIG)
       else 
         batch=true
       end
@@ -164,6 +186,10 @@ module CorikaInvoices
       else
         false
       end
+    end
+
+    def has_items?
+      invoice_items.length > 0
     end
   end
 end

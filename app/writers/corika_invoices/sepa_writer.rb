@@ -1,7 +1,7 @@
 require 'sepa_king'
 
 module CorikaInvoices
-  class SEPAWriter 
+  class SepaWriter 
     attr_accessor :date_prefix, :outfile,:workdir, :direct_debits, :credit_transfers,:year, :company,:bic,:iban,:creditor_id,:message_prefix,:settings,:generator_session_id
 
 

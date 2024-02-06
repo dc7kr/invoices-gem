@@ -69,7 +69,7 @@ module CorikaInvoices
           return false
         end
 
-        ct = SEPACreditTransfer.new(customer,amount) 
+        ct = SepaCreditTransfer.new(customer,amount) 
         ct.remittance_txt = remittance_txt
 
         self.credit_transfers << ct
@@ -122,7 +122,7 @@ module CorikaInvoices
         requested_date = 5.day.from_now.to_date
       end
 
-      sdd = SEPA::DirectDebit.new(
+      sdd = Sepa::DirectDebit.new(
         name:       self.company,
         bic:        self.bic,
         iban:       self.iban,
@@ -161,7 +161,7 @@ module CorikaInvoices
 
     def create_credit_transfer credit_transfers
       # First: Create the main object
-      sct = SEPA::CreditTransfer.new(
+      sct = Sepa::CreditTransfer.new(
         name:       self.company,
         bic:        self.bic,
         iban:       self.iban,

@@ -17,7 +17,15 @@ module CorikaInvoices
       end
 
       self.config=config
-      self.callback=callback
+
+      if not callback.nil? 
+        self.callback=callback
+      else
+        klass = Module.const_get("TexWriterCallback")
+        if klass.is_a?(Class)
+          self.callback = Object::const_get("TexWriterCallback").new
+        end
+      end
     end
 
 
@@ -38,7 +46,7 @@ module CorikaInvoices
         writeOurData(f,contact)
         writeCommon(f,invoice.customer)
         if not self.callback.nil?
-          self.callback.writeAdditionalVars(f)
+          self.callback.writeAdditionalVars(f,invoice)
         end
         f.write('\newcommand{\jahr}{'+year.to_s+"}\n")
         f.write('\newcommand{\renummer}{'+invoice.number+"}\n")
@@ -47,39 +55,42 @@ module CorikaInvoices
         f.write('\newcommand{\steuerNormal}{'+invoice.taxrate.to_s+"}\n")
         f.write('\newcommand{\steuerReduziert}{'+invoice.taxrate_reduced.to_s+"}\n")
       end
+
+      pos=1
       File.open(config.work_dir+"/posten.tex",'w') do |f|
         invoice.items.each do |i|
-          writeInvoiceItem(f,i.count,i.price,i.label,i.net_price)
+          writeInvoiceItem(f,pos,i)
           Rails.logger.debug("wrote invoice item: #{i.count}x#{i.price}:#{i.label}")
+          pos+=1
         end
+
+        sum = '%.2f' % invoice.sum
+        net_sum = '%.2f' % invoice.net_sum
+
+        f.write("\\InvoiceSum{#{net_sum}}{#{sum}}\n")
       end
     end
 
-    def writeInvoiceItem(file, count, tariff, label, net_price)
+    def writeInvoiceItem(file, pos, invoice_item)
+      count = invoice_item.count
+      price = invoice_item.price
+      label = tex_escape(invoice_item.label)
+      net_price = invoice_item.net_price
+
+      if net_price.nil? 
+        net_price=0
+      end
+      
       if (count.nil? or count == 0 )  then
         Rails.logger.info("omitting #{label} item as count was nil or 0")
         return
       end
-      amount = '%.2f' % tariff.abs;
-      amount = amount.gsub('.',',')
 
+      net_amount = '%.2f' % net_price
+      amount = '%.2f' % price
+      total = '%.2f' % price*count
 
-      tex_label =  tex_escape(label)
-
-      if tariff < 0 then
-        file.write('\Gutschrift{'+tex_label+'}{'+amount+"}")
-      else
-        file.write('\Artikel{'+String(count)+'}{'+tex_label+'}{'+amount+"}")
-      end
-
-      if ( not net_price.nil? and  net_price !=0) 
-        net_amount = '%.2f' % net_price.abs;
-        net_amount = net_amount.gsub('.',',')
-        file.write('{'+net_amount+"}\n")
-      else
-        file.write("\n")
-      end
-
+      file.write("\\Item{#{pos}}{#{count}}{#{label}}{#{amount}}{#{net_amount}}{#{total}}\n")
     end
 
     def write(member,year) 
@@ -138,13 +149,7 @@ module CorikaInvoices
 
       lastname=""
       if not customer.last_name.nil?
-          if ( customer.salutation == 'M' ) then
-            f.write('\newcommand{\anredetxt}{r Herr '+customer.last_name+"}\n")
-          elsif ( customer.salutation == 'W' ) then
-            f.write('\newcommand{\anredetxt}{ Frau '+customer.last_name+"}\n")
-          else
-            f.write('\newcommand{\anredetxt}{ Damen und Herren}'+"\n")
-          end
+        f.write('\newcommand{\anredetxt}{'+customer.salutation_line+ "}\n")
       else 
         f.write('\newcommand{\anredetxt}{ Damen und Herren,}'+"\n")
       end

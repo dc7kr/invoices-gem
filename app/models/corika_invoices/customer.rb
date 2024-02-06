@@ -47,6 +47,16 @@ module CorikaInvoices
     def entity
       entity_type.constantize.find(entity_id)
     end
+
+    def salutation_line
+      if salutation == "M" 
+        "r Herr "+self.last_name
+      elsif salutation == "W"
+        " Frau "+self.last_name
+      else
+       " Damen und Herren"
+      end
+    end
     
-  end
-end
+  end #class
+end #module

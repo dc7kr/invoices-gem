@@ -122,7 +122,7 @@ module CorikaInvoices
         requested_date = 5.day.from_now.to_date
       end
 
-      sdd = Sepa::DirectDebit.new(
+      sdd = SEPA::DirectDebit.new(
         name:       self.company,
         bic:        self.bic,
         iban:       self.iban,
@@ -161,7 +161,7 @@ module CorikaInvoices
 
     def create_credit_transfer credit_transfers
       # First: Create the main object
-      sct = Sepa::CreditTransfer.new(
+      sct = SEPA::CreditTransfer.new(
         name:       self.company,
         bic:        self.bic,
         iban:       self.iban,

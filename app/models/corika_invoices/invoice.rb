@@ -49,7 +49,7 @@ module CorikaInvoices
     def net_sum
       sum=0.0
       invoice_items.each do  |item|
-        sum+=item.count*item.net_price
+        sum+=item.count*item.net_price unless item.net_price.nil?
       end
 
       sum

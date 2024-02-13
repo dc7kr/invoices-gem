@@ -66,8 +66,9 @@ module CorikaInvoices
 
         sum = '%.2f' % invoice.sum
         net_sum = '%.2f' % invoice.net_sum
+        tax_sum = '%.2f' % invoice.net_sum_tax
 
-        f.write("\\InvoiceSum{#{net_sum}}{#{sum}}\n")
+        f.write("\\InvoiceSum{#{net_sum_tax}}{#{net_sum}}{#{sum}}\n")
       end
     end
 
@@ -88,7 +89,7 @@ module CorikaInvoices
 
       net_amount = '%.2f' % net_price
       amount = '%.2f' % price
-      total = '%.2f' % price*count
+      total = '%.2f' % (price*count)
 
       file.write("\\Item{#{pos}}{#{count}}{#{label}}{#{amount}}{#{net_amount}}{#{total}}\n")
     end

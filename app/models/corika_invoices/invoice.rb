@@ -191,5 +191,13 @@ module CorikaInvoices
     def has_items?
       invoice_items.length > 0
     end
+
+    def to_yaml
+      cust = customer.to_yaml
+      contact = invoice.contact.to_yaml
+      invoice = invoice.to_yaml
+
+      invoice.to_yaml
+    end
   end
 end

@@ -2,6 +2,8 @@ module CorikaInvoices
   class InvoiceItem
     include Mongoid::Document
 
+    include Hashify
+
     field :count, type: Integer
     field :net_price, type: Float
     field :price, type: Float
@@ -21,6 +23,13 @@ module CorikaInvoices
 
     def total
       count*price
+    end
+
+    def to_yaml
+      hash = to_hash
+      hash["total"]=total
+
+      hash.to_yaml
     end
   end
 end

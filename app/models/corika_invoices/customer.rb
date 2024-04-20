@@ -2,6 +2,7 @@ module CorikaInvoices
   class Customer 
 
     include Mongoid::Document
+    include Hashify
     
     field :customer_id, type: String
     field :salutation, type: String
@@ -56,6 +57,13 @@ module CorikaInvoices
       else
        " Damen und Herren"
       end
+    end
+
+    def to_yaml
+      hash = to_hash
+      hash["dd"]=is_direct_debit?
+
+      hash.to_yaml
     end
     
   end #class

@@ -1,6 +1,8 @@
 module CorikaInvoices
   class Contact
-    attr_accessor :iban, :bic, :phone, :fax, :mail, :name, :dept, :street, :plz, :ort, :job, :bank
+    attr_accessor :iban, :bic, :phone, :fax, :mail, :name, :dept, :street, :city, :zip, :job, :bank
+    # for yaml generation
+    include Hashify
 
     def initialize(hash)
 
@@ -14,7 +16,7 @@ module CorikaInvoices
     end
 
     def is_valid?
-      not (self.name.nil? or self.dept.nil?  or self.street.nil?  or self.plz.nil?  or self.ort.nil? or self.job.nil?)
+      not (self.name.nil? or self.dept.nil?  or self.street.nil?  or self.zip.nil?  or self.city.nil? or self.job.nil?)
     end
 
     def has_bank_account? 

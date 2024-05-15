@@ -25,10 +25,7 @@ module CorikaInvoices
     end
 
     def addItem(count,price,label) 
-      item = InvoiceItem.new
-      item.count = count
-      item.price = price 
-      item.label = label   
+      item = InvoiceItem.create(count,price,label)
     
       invoice_items << item
     end

@@ -43,7 +43,7 @@ module CorikaInvoices
       tax=0.0
 
       invoice_items.each do  |item|
-        sum+=item.tax_total
+        tax+=item.tax_total
       end
 
       tax

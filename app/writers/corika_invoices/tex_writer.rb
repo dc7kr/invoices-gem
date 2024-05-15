@@ -183,8 +183,8 @@ module CorikaInvoices
       f.write('\newcommand{\myName}{'+our_contact.name+"}\n")
       f.write('\newcommand{\myDept}{'+our_contact.dept+"}\n")
       f.write('\newcommand{\myStreet}{'+our_contact.street+"}\n")
-      f.write('\newcommand{\myPLZ}{'+our_contact.plz+"}\n")
-      f.write('\newcommand{\myOrt}{'+our_contact.ort+"}\n")
+      f.write('\newcommand{\myPLZ}{'+our_contact.zip+"}\n")
+      f.write('\newcommand{\myOrt}{'+our_contact.city+"}\n")
       f.write('\newcommand{\myJob}{'+our_contact.job+"}\n")
       f.write('\newcommand{\brko}{'+config.header_file+"}\n")
     end

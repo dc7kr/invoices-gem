@@ -52,8 +52,6 @@ module CorikaInvoices
         f.write('\newcommand{\renummer}{'+invoice.number+"}\n")
         f.write('\newcommand{\zweck}{'+invoice.number+"}\n")
         f.write('\newcommand{\rechnungTyp}{'+invoice.tax_type+"}\n")
-        f.write('\newcommand{\steuerNormal}{'+invoice.taxrate.to_s+"}\n")
-        f.write('\newcommand{\steuerReduziert}{'+invoice.taxrate_reduced.to_s+"}\n")
       end
 
       pos=1
@@ -66,7 +64,7 @@ module CorikaInvoices
 
         sum = '%.2f' % invoice.sum
         net_sum = '%.2f' % invoice.net_sum
-        tax_sum = '%.2f' % invoice.net_sum_tax
+        tax_sum = '%.2f' % invoice.tax_sum
 
         f.write("\\InvoiceSum{#{tax_sum}}{#{net_sum}}{#{sum}}\n")
       end
@@ -77,6 +75,8 @@ module CorikaInvoices
       price = invoice_item.price
       label = tex_escape(invoice_item.label)
       net_price = invoice_item.net_price
+
+      tax_rate = invoice_item.tax_rate
 
       if net_price.nil? 
         net_price=0
@@ -90,8 +90,9 @@ module CorikaInvoices
       net_amount = '%.2f' % net_price
       amount = '%.2f' % price
       total = '%.2f' % (price*count)
+      tax_total = '%.2f' % invoice_item.tax_total
 
-      file.write("\\Item{#{pos}}{#{count}}{#{label}}{#{amount}}{#{net_amount}}{#{total}}\n")
+      file.write("\\Item{#{pos}}{#{count}}{#{label}}{#{amount}}{#{net_amount}}{#{total}}{#{tax_rate}}{#{tax_total}}\n")
     end
 
     def write(member,year) 

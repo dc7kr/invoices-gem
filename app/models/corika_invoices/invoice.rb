@@ -28,6 +28,8 @@ module CorikaInvoices
       item = InvoiceItem.create(count,price,label)
     
       invoice_items << item
+
+      item
     end
 
     def net_sum

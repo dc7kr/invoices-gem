@@ -11,8 +11,6 @@ module CorikaInvoices
     field :pdf_filename, type: String
     field :sepa_filename, type: String
     field :generator_session_id, type: String
-    field :taxrate, type: Integer
-    field :taxrate_reduced, type: Integer
     field :booking_year, type: Integer
 
     embeds_one :customer
@@ -35,24 +33,23 @@ module CorikaInvoices
       invoice_items << item
     end
 
-    def net_sum_tax
-      tr = nil
-      if taxrate.nil? then
-        tr = sum/INVOICE_CONFIG.taxrate
-      else
-        tr = taxrate
-      end
-
-      sum/(tr/100.0+1)
-    end
-
     def net_sum
       sum=0.0
       invoice_items.each do  |item|
-        sum+=item.count*item.net_price unless item.net_price.nil?
+        sum+=item.net_total
       end
 
       sum
+    end
+
+    def tax_sum
+      tax=0.0
+
+      invoice_items.each do  |item|
+        sum+=item.tax_total
+      end
+
+      tax
     end
 
     def sum

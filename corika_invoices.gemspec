@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.version     = CorikaInvoices::VERSION
   s.authors     = ["Karsten Richter"]
   s.email       = ["kr@corika.com"]
-  s.homepage    = "http://www.corika.com"
+  s.homepage    = "https://github.com/dc7kr/invoices-gem"
   s.summary     = "An invoice generation and archive tool using mongo DB for persistence"
   s.description =  "An invoice generation and archive tool using mongo DB for persistence"
   s.license     = "GPL"
@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
   s.add_dependency "rails", ">=  5.0"
   s.add_dependency "mongoid"
   s.add_dependency "kaminari"
+  s.add_dependency "countries"
 
   s.add_development_dependency "sqlite3"
 end

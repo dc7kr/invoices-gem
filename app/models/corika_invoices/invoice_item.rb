@@ -29,7 +29,7 @@ module CorikaInvoices
       if net_price.nil? or net_price == 0 
         tax = tax_rate*count*price/(100+tax_rate)
       else 
-        tax = taxrate*count*net_price/100
+        tax = tax_rate*count*net_price/100
       end
       
       tax

@@ -45,6 +45,13 @@ module CorikaInvoices
     
 
     public
+    def add_invoice(invoice, prefix)
+      dd = SepaDirectDebit.new(invoice.customer,nil)
+      dd.remittance_txt = "#{prefix} #{invoice.number}"
+      dd.amount = invoice.sum
+      @direct_debits << dd
+    end
+
     def add_direct_debit(customer, amount, remittance_txt,sequence_type=nil)
       if self.credit_transfers.count > 0 
         throw :invalid_request

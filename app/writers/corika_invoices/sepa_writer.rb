@@ -95,6 +95,13 @@ module CorikaInvoices
       end
     end
 
+    def ensure_target_dir_exists(file_path)
+      dir = File.dirname(file_path)
+      unless File.directory?(dir)
+        FileUtils.mkdir_p(dir)
+      end
+    end
+
     def generate_file
       write_xml
     end
@@ -115,6 +122,8 @@ module CorikaInvoices
       end
 
       outfile = MailingFile.new(self.filename,self.filename,self.year.to_s)
+      ensure_target_dir_exists(outfile.full_path)
+
       sepaFile = File.open(outfile.full_path,"w")
       sepaFile << sepaxml
       sepaFile.close
@@ -208,4 +217,5 @@ module CorikaInvoices
       # old FORMAT: xml_string = sct.to_xml('pain.001.002.03') 
     end
   end
+
 end

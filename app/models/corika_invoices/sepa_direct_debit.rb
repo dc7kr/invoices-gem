@@ -1,35 +1,33 @@
-module CorikaInvoices 
-  class SepaDirectDebit  < SepaContactFacade
-    attr_accessor :end_to_end_id,:amount,:remittance_txt,:sequence_type
+module CorikaInvoices
+  class SepaDirectDebit < SepaContactFacade
+    attr_accessor :amount, :remittance_txt, :sequence_type
 
-    def initialize(customer, seq_type="RCUR")
+    def initialize(customer, seq_type = 'RCUR')
       super(customer)
 
-      if (seq_type.nil?) then
-        seq_type = "RCUR"
-      end
+      seq_type = 'RCUR' if seq_type.nil?
 
-      self.sequence_type=seq_type
+      self.sequence_type = seq_type
     end
 
     def iban
-      self.customer.iban
+      customer.iban
     end
 
     def bic
-      self.customer.bic
+      customer.bic
     end
 
     def mandate_id
-      self.customer.mandate_id
+      customer.mandate_id
     end
 
     def sig_date
-      self.customer.sig_date
+      customer.sig_date
     end
 
     def end_to_end_id(prefix)
-      prefix+"_"+self.customer.customer_id.to_s
+      "#{prefix}_#{customer.customer_id}"
     end
   end
 end

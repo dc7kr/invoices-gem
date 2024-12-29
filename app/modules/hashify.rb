@@ -5,7 +5,7 @@ module Hashify
   def ivars_excluded_from_hash
     []
   end
-  
+
   def to_hash
     hash = {}
     excluded_ivars = ivars_excluded_from_hash
@@ -18,9 +18,9 @@ module Hashify
       value = instance_variable_get(var)
       value = value.map(&:to_hash) if value.is_a? Array
 
-      hash[var.to_s.delete("@")] = value
+      hash[var.to_s.delete('@')] = value
     end
 
-    return hash
+    hash
   end
 end

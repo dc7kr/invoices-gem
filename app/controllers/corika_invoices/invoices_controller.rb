@@ -1,21 +1,18 @@
 module CorikaInvoices
-  #  NOTE: inherits from CorikaInvoices::ApplicationController 
+  #  NOTE: inherits from CorikaInvoices::ApplicationController
   class InvoicesController < ApplicationController
-
     include FileArchiveHelper
 
     def index
-      @invoices = Invoice.all.page(params[:page]).per(30) 
+      @invoices = Invoice.all.page(params[:page]).per(30)
       respond_to do |format|
-        format.html 
+        format.html
         format.js
-        format.json { render @invoices, :format=> :json } 
+        format.json { render @invoices, format: :json }
       end
     end
 
-    def generation
-          
-    end
+    def generation; end
 
     def show
       @invoice = Invoice.find(params[:id])
@@ -23,18 +20,18 @@ module CorikaInvoices
 
     def gen_sepa
       invoice = Invoice.find(params[:id])
-      year = invoice.invoice_date.year 
+      year = invoice.invoice_date.year
 
       dd_file = nil
 
-      if invoice.sepa_filename.nil? then
+      if invoice.sepa_filename.nil?
         dd_file = invoice.gen_sepa
 
-        if not dd_file.nil? 
-          invoice.sepa_filename = dd_file.orig_filename 
+        if !dd_file.nil?
+          invoice.sepa_filename = dd_file.orig_filename
           invoice.save
         else
-          Rails.logger.error("SEPA file could not be generated")
+          Rails.logger.error('SEPA file could not be generated')
 
           redirect_to invoices_path, notice: 'SEPA file could not be created'
           return
@@ -52,22 +49,21 @@ module CorikaInvoices
 
       invoice_file = @invoice.gen_pdf
 
-      if invoice_file.nil? then
-        render :text=>"File could not be generated"
+      if invoice_file.nil?
+        render text: 'File could not be generated'
       else
         send_file(invoice_file.full_path)
       end
     end
 
     def translated_salutation(customer)
-      gender = nil
-      if (customer.anrede == 0 ) then
-        gender ="M"
-      else
-        gender="F"
-      end
+      gender = if customer.anrede.zero?
+                 'M'
+               else
+                 'F'
+               end
 
-      t("common.salutations.#{gender}",:name => customer.name)
+      t("common.salutations.#{gender}", name: customer.name)
     end
   end
 end

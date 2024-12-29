@@ -1,4 +1,4 @@
-require "corika_invoices/engine"
+require 'corika_invoices/engine'
 
 module CorikaInvoices
 end

@@ -1,9 +1,8 @@
 module CorikaInvoices
-  class Customer 
-
+  class Customer
     include Mongoid::Document
     include Hashify
-    
+
     field :customer_id, type: String
     field :salutation, type: String
     field :first_name, type: String
@@ -23,17 +22,16 @@ module CorikaInvoices
     field :entity_type, type: String
     field :entity_id, type: Integer
 
-
     def full_name
-      "#{first_name} #{last_name}"  
+      "#{first_name} #{last_name}"
     end
 
-    def is_direct_debit?
-      direct_debit and not ( iban.blank?  or bic.blank?)
+    def direct_debit?
+      direct_debit and !(iban.blank? or bic.blank?)
     end
 
     def account_owner
-      if company.nil? or company.length == 0 then
+      if company.nil? || company.empty?
         full_name
       else
         company
@@ -41,7 +39,7 @@ module CorikaInvoices
     end
 
     def entity=(entity)
-      self.entity_type= entity.class.name
+      self.entity_type = entity.class.name
       self.entity_id = entity.id
     end
 
@@ -50,21 +48,20 @@ module CorikaInvoices
     end
 
     def salutation_line
-      if salutation == "M" 
-        "r Herr "+self.last_name
-      elsif salutation == "W"
-        " Frau "+self.last_name
+      if salutation == 'M'
+        "r Herr #{last_name}"
+      elsif salutation == 'W'
+        " Frau #{last_name}"
       else
-       " Damen und Herren"
+        ' Damen und Herren'
       end
     end
 
     def to_yaml
       hash = to_hash
-      hash["dd"]=is_direct_debit?
+      hash['dd'] = is_direct_debit?
 
       hash.to_yaml
     end
-    
-  end #class
-end #module
+  end
+end

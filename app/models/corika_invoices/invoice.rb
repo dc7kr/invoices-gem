@@ -14,47 +14,45 @@ module CorikaInvoices
     field :booking_year, type: Integer
 
     embeds_one :customer
-    embeds_many :invoice_items, store_as: "items"
+    embeds_many :invoice_items, store_as: 'items'
 
-    def considerItem(count, price,label)
-      if count.nil? or count == 0 then
-        return false
-      end
+    def consider_item(count, price, label)
+      return false if count.nil? || count.zero?
 
-      addItem(count,price,label)
+      add_item(count, price, label)
     end
 
-    def addItem(count,price,label) 
-      item = InvoiceItem.create(count,price,label)
-    
+    def add_item(count, price, label)
+      item = InvoiceItem.create(count, price, label)
+
       invoice_items << item
 
       item
     end
 
     def net_sum
-      sum=0.0
-      invoice_items.each do  |item|
-        sum+=item.net_total
+      sum = 0.0
+      invoice_items.each do |item|
+        sum += item.net_total
       end
 
       sum
     end
 
     def tax_sum
-      tax=0.0
+      tax = 0.0
 
-      invoice_items.each do  |item|
-        tax+=item.tax_total
+      invoice_items.each do |item|
+        tax += item.tax_total
       end
 
       tax
     end
 
     def sum
-      sum=0.0
-      invoice_items.each do  |item|
-        sum+=item.count*item.price
+      sum = 0.0
+      invoice_items.each do |item|
+        sum += item.count * item.price
       end
 
       sum
@@ -69,128 +67,117 @@ module CorikaInvoices
     end
 
     # TW is either a TexWriter or TexWriterCallback instance
-    def gen_pdf(tw=nil)
-
+    def gen_pdf(tex_writer = nil)
       invoice_file = nil
-      if self.invoice_date.nil? then 
-        self.invoice_date = Time.now
-      end
+      self.invoice_date = Time.now if invoice_date.nil?
 
-      if self.our_contact.nil? then
-        Rails.logger.warn("setting contact to default")
-        self.our_contact = "default"
+      if our_contact.nil?
+        Rails.logger.warn('setting contact to default')
+        self.our_contact = 'default'
       end
-     
-      year = nil
-      if self.booking_year.nil?  
-        year = self.invoice_date.year 
-      else
-        year = self.booking_year
-      end
+      year = if booking_year.nil?
+               invoice_date.year
+             else
+               booking_year
+             end
 
-      if self.pdf_filename.nil? then 
-        if tw.nil? then 
-          tw = CorikaInvoices::TexWriter.new(INVOICE_CONFIG)
-        elsif tw.is_a? TexWriterCallback
-          tw = CorikaInvoices::TexWriter.new(INVOICE_CONFIG,twc)
+      if pdf_filename.nil?
+        if tex_writer.nil?
+          tex_writer = CorikaInvoices::TexWriter.new(INVOICE_CONFIG)
+        elsif tex_writer.is_a? TexWriterCallback
+          tex_writer = CorikaInvoices::TexWriter.new(INVOICE_CONFIG, twc)
         end
 
-        datePrefix = Time.now.strftime '%Y%m%d%H%M%S'
+        date_prefix = Time.now.strftime '%Y%m%d%H%M%S'
 
-        tw.writeInvoice(self,self.our_contact,year)
+        tex_writer.writeInvoice(self, our_contact, year)
 
-        work_pdf_file = tw.gen_pdf(invoice_type,datePrefix, self.customer.customer_id)
+        work_pdf_file = tex_writer.gen_pdf(invoice_type, date_prefix, customer.customer_id)
 
-        invoice_file = archive_file(INVOICE_CONFIG.work_dir,work_pdf_file,year)
-
+        invoice_file = archive_file(INVOICE_CONFIG.work_dir, work_pdf_file, year)
 
         Rails.logger.debug("Work_pdf: #{invoice_file}")
         Rails.logger.debug("Archived: #{work_pdf_file}")
 
-        if invoice_file.nil? then 
-          return nil
-        end
+        return nil if invoice_file.nil?
 
         self.pdf_filename = invoice_file.orig_filename
-        self.save
+        save
       else
-        invoice_file = MailingFile.new(self.pdf_filename, self.pdf_filename, year.to_s)
+        invoice_file = MailingFile.new(pdf_filename, pdf_filename, year.to_s)
       end
 
       invoice_file
     end
 
-    def gen_sepa(sepa_writer=nil)
-      year = self.invoice_date.year 
+    def gen_sepa(sepa_writer = nil)
+      year = invoice_date.year
 
       batch = false
 
       dd_file = nil
-      datePrefix = Time.now.strftime '%Y%m%d%H%M%S'
+      date_prefix = Time.now.strftime '%Y%m%d%H%M%S'
 
-      if sepa_writer.nil? then 
-        sepa_writer = SepaWriter.new(datePrefix, INVOICE_CONFIG)
-      else 
-        batch=true
+      if sepa_writer.nil?
+        sepa_writer = SepaWriter.new(date_prefix, INVOICE_CONFIG)
+      else
+        batch = true
       end
 
       # if already generated simply return the file for download
-      if not self.sepa_filename.nil? then
-        if batch
-          return false
-        else
-          return MailingFile.new(self.sepa_filename, self.sepa_filename, year.to_s)
-        end
+      unless sepa_filename.nil?
+        return false if batch
+
+        return MailingFile.new(sepa_filename, sepa_filename, year.to_s)
+
       end
 
-      if gen_sepa_booking(sepa_writer) then
-        if batch 
-          return true
-        else
-          dd_file = sepa_writer.generate_file
+      if gen_sepa_booking(sepa_writer)
+        return true if batch
 
-          if not dd_file.nil? then
-            self.sepa_filename = dd_file.orig_filename 
-            self.save
-          end
+        dd_file = sepa_writer.generate_file
+
+        unless dd_file.nil?
+          self.sepa_filename = dd_file.orig_filename
+          save
         end
+
       end
 
       dd_file
     end
 
     def make_distinct
-      if not Invoice.where(number: self.number).first.nil? then
-        suffix = 2;
+      return if Invoice.where(number: number).first.nil?
 
-        number = self.number+"-"+suffix.to_s
+      suffix = 2
 
-        while not Invoice.where(number: number).first.nil?  do
-          suffix +=1  
-          number = self.number+"-"+suffix.to_s
-        end
+      number = "#{self.number}-#{suffix}"
 
-        self.number = number
+      until Invoice.where(number: number).first.nil?
+        suffix += 1
+        number = "#{self.number}-#{suffix}"
       end
+
+      self.number = number
     end
 
     def gen_sepa_booking(sepa_writer)
-      dd_file = nil
-      if ( self.customer.is_direct_debit? ) then
-        sepa_writer.add_direct_debit(self.customer,self.sum,self.number,"RCUR")
-        return true
+      if customer.is_direct_debit?
+        sepa_writer.add_direct_debit(customer, sum, number, 'RCUR')
+        true
       else
         false
       end
     end
 
-    def has_items?
-      invoice_items.length > 0
+    def items?
+      invoice_items.length.positive?
     end
 
     def to_yaml
-      cust = customer.to_yaml
-      contact = invoice.contact.to_yaml
+      customer.to_yaml
+      invoice.contact.to_yaml
       invoice = invoice.to_yaml
 
       invoice.to_yaml

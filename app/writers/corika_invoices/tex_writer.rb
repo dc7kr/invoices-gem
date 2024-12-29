@@ -1,76 +1,65 @@
 module CorikaInvoices
-  class TexWriter 
-    attr_accessor :config,:callback
+  class TexWriter
+    attr_accessor :config, :callback
 
     include ApplicationHelper
     include ActionView::Helpers::NumberHelper
 
+    def initialize(config, callback = nil)
+      throw :invoice_work_dir_nil if config.work_dir.nil?
 
-    def initialize(config,callback=nil)
+      throw :invoice_tool_dir_nil if config.tool_dir.nil?
 
-      if config.work_dir.nil? 
-        throw :invoice_work_dir_nil
-      end
+      self.config = config
 
-      if config.tool_dir.nil? 
-        throw :invoice_tool_dir_nil
-      end
-
-      self.config=config
-
-      if not callback.nil? 
-        self.callback=callback
+      if !callback.nil?
+        self.callback = callback
       else
-        klass = Module.const_get("TexWriterCallback")
-        if klass.is_a?(Class)
-          self.callback = Object::const_get("TexWriterCallback").new
-        end
+        klass = Module.const_get('TexWriterCallback')
+        self.callback = Object.const_get('TexWriterCallback').new if klass.is_a?(Class)
       end
     end
 
-
-    def writeInvoice(invoice,contact_id,year) 
+    def write_invoice(invoice, contact_id, year)
       contact = CorikaInvoices::Contact.new(INVOICE_CONTACT_HASH[contact_id])
 
       if contact.nil?
-        Rails.logger.warn("CONTACT is nil! aborting")
+        Rails.logger.warn('CONTACT is nil! aborting')
         return
       end
 
-      if not contact.is_valid?
-        Rails.logger.warn("Contact is invalid (data missing)")
+      unless contact.is_valid?
+        Rails.logger.warn('Contact is invalid (data missing)')
         return
       end
 
-      File.open(config.work_dir+"/variables.tex", 'w') do |f| 
-        writeOurData(f,contact)
-        writeCommon(f,invoice.customer)
-        if not self.callback.nil?
-          self.callback.writeAdditionalVars(f,invoice)
-        end
-        f.write('\newcommand{\jahr}{'+year.to_s+"}\n")
-        f.write('\newcommand{\renummer}{'+invoice.number+"}\n")
-        f.write('\newcommand{\zweck}{'+invoice.number+"}\n")
-        f.write('\newcommand{\rechnungTyp}{'+invoice.tax_type+"}\n")
+      File.open("#{config.work_dir}/variables.tex", 'w') do |out_file|
+        write_our_data(f, contact)
+        write_common(f, invoice.customer)
+        callback&.writeAdditionalVars(f, invoice)
+        out_file.write("\\newcommand{\\jahr}{#{year}}\n")
+        out_file.write("\\newcommand{\\renummer}{#{invoice.number}}\n")
+        out_file.write("\\newcommand{\\zweck}{#{invoice.number}}\n")
+        out_file.write("\\newcommand{\\rechnungTyp}{#{invoice.tax_type}}\n")
       end
 
-      pos=1
-      File.open(config.work_dir+"/posten.tex",'w') do |f|
+      pos = 1
+      File.open("#{config.work_dir}/posten.tex", 'w') do |out_file|
         invoice.items.each do |i|
-          writeInvoiceItem(f,pos,i)
+          write_invoice_item(f, pos, i)
           Rails.logger.debug("wrote invoice item: #{i.count}x#{i.price}:#{i.label}")
-          pos+=1
+          pos += 1
         end
 
-        sum = '%.2f' % invoice.sum
-        net_sum = '%.2f' % invoice.net_sum
-        tax_sum = '%.2f' % invoice.tax_sum
+        sum = format('%.2f', invoice.sum)
+        net_sum = format('%.2f', invoice.net_sum)
+        tax_sum = format('%.2f', invoice.tax_sum)
 
-        f.write("\\InvoiceSum{#{tax_sum}}{#{net_sum}}{#{sum}}\n")
+        out_file.write("\\InvoiceSum{#{tax_sum}}{#{net_sum}}{#{sum}}\n")
       end
     end
 
-    def writeInvoiceItem(file, pos, invoice_item)
+    def write_invoice_item(file, pos, invoice_item)
       count = invoice_item.count
       price = invoice_item.price
       label = tex_escape(invoice_item.label)
@@ -78,158 +67,149 @@ module CorikaInvoices
 
       tax_rate = invoice_item.tax_rate
 
-      if net_price.nil? 
-        net_price=0
-      end
-      
-      if (count.nil? or count == 0 )  then
+      net_price = 0 if net_price.nil?
+
+      if count.nil? || count.zero?
         Rails.logger.info("omitting #{label} item as count was nil or 0")
         return
       end
 
-      net_amount = '%.2f' % net_price
-      amount = '%.2f' % price
-      total = '%.2f' % (price*count)
-      tax_total = '%.2f' % invoice_item.tax_total
+      net_amount = format('%.2f', net_price)
+      amount = format('%.2f', price)
+      total = format('%.2f', (price * count))
+      tax_total = format('%.2f', invoice_item.tax_total)
 
       file.write("\\Item{#{pos}}{#{count}}{#{label}}{#{amount}}{#{net_amount}}{#{total}}{#{tax_rate}}{#{tax_total}}\n")
     end
 
-    def write(member,year) 
-      File.open(config.work_dir+"/variables.tex", 'w') do |f| 
-        writeOurData(f,'gs');
-        f.write('\newcommand{\jahr}{'+year.to_s+"}\n")
-        writeCommon(f,member.to_customer)
+    def write(member, year)
+      File.open("#{config.work_dir}/variables.tex", 'w') do |out_file|
+        write_our_data(out_file, 'gs')
+        out_file.write("\\newcommand{\\jahr}{#{year}}\n")
+        write_common(out_file, member.to_customer)
       end
-    end 
+    end
 
-    def writeCommon(f,customer)
-      f.write('\newcommand{\customerId}{'+customer.customer_id.to_s+"}\n")
-      if ( customer.is_direct_debit? ) then
-        f.write('\newcommand{\directDebit}{1}'+"\n")
-        f.write('\newcommand{\iban}{'+customer.iban.to_s+"}\n")
-        f.write('\newcommand{\bic}{'+customer.bic.to_s+"}\n")
+    def write_common(out_file, customer)
+      out_file.write("\\newcommand{\\customerId}{#{customer.customer_id}}\n")
+      if customer.is_direct_debit?
+        out_file.write('\newcommand{\directDebit}{1}')
+        out_file.write("\n")
+        out_file.write("\\newcommand{\\iban}{#{customer.iban}}\n")
+        out_file.write("\\newcommand{\\bic}{#{customer.bic}}\n")
+        out_file.write("\n")
 
-        f.write('\newcommand{\mandateRef}{'+customer.mandate_id.to_s+"}\n")
-        f.write('\newcommand{\glaeubigerId}{'+config.creditor_id+"}\n")
+        out_file.write("\\newcommand{\\mandateRef}{#{customer.mandate_id}}\n")
+        out_file.write("\\newcommand{\\glaeubigerId}{#{config.creditor_id}}\n")
       else
-        f.write('\newcommand{\directDebit}{0}'+"\n")
+        out_file.write('\newcommand{\directDebit}{0}')
       end
-      if ( customer.company.nil?)
-        f.write('\newcommand{\firma}{}'+"\n")
+      out_file.write("\n")
+      if customer.company.nil?
+        out_file.write("\\newcommand{\\firma}{}\n")
       else
-        f.write('\newcommand{\firma}{'+breakName(tex_escape(customer.company))+'}'+"\n")
+        out_file.write("\\newcommand{\\firma}{#{break_name(tex_escape(customer.company))}}\n")
       end
 
-      f.write('\newcommand{\name}{'+"#{customer.first_name} #{customer.last_name}}\n")
-      f.write('\newcommand{\strasse}{'+"#{customer.street}}\n")
-      full_ort=""
-      if ( customer.zip) then 
+      out_file.write("\\newcommand{\\name}{#{customer.first_name} #{customer.last_name}}\n")
+      out_file.write("\\newcommand{\\strasse}{#{customer.street}}\n")
+      full_ort = ''
+      if customer.zip
         full_ort += customer.zip
         full_ort += ' '
       end
-      if ( customer.city ) then
-        full_ort += customer.city
-      end
+      full_ort += customer.city if customer.city
 
-      f.write('\newcommand{\ort}{'+"#{full_ort}}\n")
+      out_file.write("\\newcommand{\\ort}{#{full_ort}}\n")
 
       country = ISO3166::Country[customer.country]
-      country_en = nil
-      if (customer.country == "DE" or customer.country.nil?) then
-        country_en = ""
-      else
-        country_en = country.translations['en']
-      end
+      country_en = if (customer.country == 'DE') || customer.country.nil?
+                     ''
+                   else
+                     country.translations['en']
+                   end
 
-      f.write('\newcommand{\country}{'+country_en+"}\n")
-      if customer.email.nil? then
-        f.write('\newcommand{\email}{0}'+"\n")
+      out_file.write("\\newcommand{\\country}{#{country_en}}\n")
+      if customer.email.nil?
+        out_file.write("\\newcommand{\\email}{0}\n")
       else
-        f.write('\newcommand{\email}{'+customer.email+"}\n")
+        out_file.write("\\newcommand{\\email}{#{customer.email}}\n")
       end
-
-      lastname=""
-      if not customer.last_name.nil?
-        f.write('\newcommand{\anredetxt}{'+customer.salutation_line+ "}\n")
-      else 
-        f.write('\newcommand{\anredetxt}{ Damen und Herren,}'+"\n")
+      if !customer.last_name.nil?
+        out_file.write("\\newcommand{\\anredetxt}{#{customer.salutation_line}}\n")
+      else
+        out_file.write("\\newcommand{\\anredetxt}{ Damen und Herren,}\n")
       end
-      #f.write('\newcommand{\myStrasse}{}'+"\n")
-      f.write('\newcommand{\redatum}{'+I18n.l(Time.now.to_date , :format => :long)+"}\n")
+      # out_file.write('\newcommand{\myStrasse}{}'+"\n")
+      out_file.write("\\newcommand{\\redatum}{#{I18n.l(Time.now.to_date, format: :long)}}\n")
     end
 
-    def writeOurData(f,our_contact) 
-
-      f.write('\newcommand{\myFirma}{'+config.company+"}\n")
-      f.write('\newcommand{\myFirmaShort}{'+config.company_short+"}\n")
+    def write_our_data(out_file, our_contact)
+      out_file.write("\\newcommand{\\myFirma}{#{config.company}}\n")
+      out_file.write("\\newcommand{\\myFirmaShort}{#{config.company_short}}\n")
 
       # contact can override the bank account for DD
 
-      if not our_contact.has_bank_account? then
+      if !our_contact.has_bank_account?
         # use default bank account
-        f.write('\newcommand{\myBank}{'+config.bank+"}\n")
-        f.write('\newcommand{\myIBAN}{'+config.iban+"}\n")
-        f.write('\newcommand{\myBIC}{'+config.bic+"}\n")
+        out_file.write("\\newcommand{\\myBank}{#{config.bank}}\n")
+        out_file.write("\\newcommand{\\myIBAN}{#{config.iban}}\n")
+        out_file.write("\\newcommand{\\myBIC}{#{config.bic}}\n")
       else
-        f.write('\newcommand{\myIBAN}{'+our_contact.iban+"}\n")
-        f.write('\newcommand{\myBIC}{'+our_contact.bic+"}\n")
-        f.write('\newcommand{\myBank}{'+our_contact.bank+"}\n")
+        out_file.write("\\newcommand{\\myIBAN}{#{our_contact.iban}}\n")
+        out_file.write("\\newcommand{\\myBIC}{#{our_contact.bic}}\n")
+        out_file.write("\\newcommand{\\myBank}{#{our_contact.bank}}\n")
       end
 
-      f.write('\newcommand{\myPhone}{'+our_contact.phone+"}\n")
-      f.write('\newcommand{\myFax}{'+our_contact.fax+"}\n")
-      f.write('\newcommand{\myMail}{'+our_contact.mail+"}\n")
-      f.write('\newcommand{\myName}{'+our_contact.name+"}\n")
-      f.write('\newcommand{\myDept}{'+our_contact.dept+"}\n")
-      f.write('\newcommand{\myStreet}{'+our_contact.street+"}\n")
-      f.write('\newcommand{\myPLZ}{'+our_contact.zip+"}\n")
-      f.write('\newcommand{\myOrt}{'+our_contact.city+"}\n")
-      f.write('\newcommand{\myJob}{'+our_contact.job+"}\n")
-      f.write('\newcommand{\brko}{'+config.header_file+"}\n")
+      out_file.write("\\newcommand{\\myPhone}{#{our_contact.phone}}\n")
+      out_file.write("\\newcommand{\\myFax}{#{our_contact.fax}}\n")
+      out_file.write("\\newcommand{\\myMail}{#{our_contact.mail}}\n")
+      out_file.write("\\newcommand{\\myName}{#{our_contact.name}}\n")
+      out_file.write("\\newcommand{\\myDept}{#{our_contact.dept}}\n")
+      out_file.write("\\newcommand{\\myStreet}{#{our_contact.street}}\n")
+      out_file.write("\\newcommand{\\myPLZ}{#{our_contact.zip}}\n")
+      out_file.write("\\newcommand{\\myOrt}{#{our_contact.city}}\n")
+      out_file.write("\\newcommand{\\myJob}{#{our_contact.job}}\n")
+      out_file.write("\\newcommand{\\brko}{#{config.header_file}}\n")
     end
 
-
-    def breakName(name)
+    def break_name(name)
       # if name contains ; use that...
-      name.gsub(";","\\\\ ")
+      name.gsub(';', '\\\\ ')
     end
+
     def format_date(date)
-      return I18n.l(date.to_date , :format => :long)
+      I18n.l(date.to_date, format: :long)
     end
 
-    def format_currency(val,currency)
-      return number_to_currency(val,:locale => :de)
+    def format_currency(val, _currency)
+      number_to_currency(val, locale: :de)
     end
 
-    def moveGeneratedFiles(datePrefix)
-      tgtDir= config.archive_dir +"/"+String(Time.now.year)
+    def move_generated_files(date_prefix)
+      target_dir = config.archive_dir(+'/' + String(Time.now.year))
 
-      shortprefix = Time.now.strftime("%Y%m%d-")
+      shortprefix = Time.now.strftime('%Y%m%d-')
 
-      if ( ! Dir.exists? tgtDir) then
-        FileUtils.mkdir tgtDir
-      end
+      FileUtils.mkdir target_dir unless Dir.exist? target_dir
 
       Dir.chdir(config.work_dir)
-      Dir.entries(config.work_dir).each { |file|
-        if file.start_with? datePrefix or file.start_with? shortprefix then
-          FileUtils.mv file, tgtDir+"/"
-        end
-      }
+      Dir.entries(config.work_dir).each do |file|
+        FileUtils.mv file, "#{target_dir}/" if file.start_with?(date_prefix) || file.start_with?(shortprefix)
+      end
     end
 
-    def gen_pdf(invoice_type, datePrefix, customer_id)
-      out_file = "#{datePrefix}-#{customer_id}-#{invoice_type}.pdf"
-      batch = File.join(config.tool_dir, "bin/invoice.sh")
-      cli = "#{batch} #{invoice_type} #{datePrefix} #{customer_id}"
+    def gen_pdf(invoice_type, date_prefix, customer_id)
+      out_file = "#{date_prefix}-#{customer_id}-#{invoice_type}.pdf"
+      batch = File.join(config.tool_dir, 'bin/invoice.sh')
+      cli = "#{batch} #{invoice_type} #{date_prefix} #{customer_id}"
 
-      env = Hash.new
-      env["TEX"]= config.tex_exe
-      env["TEX_DIR"]= config.tex_dir
-      env["TEX_BRANDING_DIR"]= config.tex_branding_dir
-      env["OUT_DIR"]= config.work_dir
-      
+      env = {}
+      env['TEX'] = con fig.tex_exe
+      env['TEX_DIR'] = config.tex_dir
+      env['TEX_BRANDING_DIR'] = config.tex_branding_dir
+      env['OUT_DIR'] = config.work_dir
+
       Rails.logger.debug("Env: #{env}")
       Rails.logger.debug("Exec: #{cli}")
 
@@ -241,11 +221,11 @@ module CorikaInvoices
     end
 
     def tex_escape(text)
-      text.gsub(/\"([a-zA-z0-9 ]+)\"/, '``\1\'\'').gsub(/\&/,'\\\&').gsub(/_/,'\\_').gsub(/"/,'\\dq ')
+      text.gsub(/"([a-zA-z0-9 ]+)"/, '``\1\'\'').gsub(/&/, '\\\&').gsub(/_/, '\\_').gsub(/"/, '\\dq ')
     end
   end
 
-  private 
-  def contact_vaild?(contact) 
-  end
+  private
+
+  def contact_vaild?(contact); end
 end

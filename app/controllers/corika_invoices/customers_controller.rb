@@ -1,12 +1,10 @@
 module CorikaInvoices
-  #  NOTE: inherits from CorikaInvoices::ApplicationController 
+  #  NOTE: inherits from CorikaInvoices::ApplicationController
   class CustomersController < ApplicationController
-
     include FileArchiveHelper
 
     def index
       @invoices = Customer.all
-
     end
 
     def show

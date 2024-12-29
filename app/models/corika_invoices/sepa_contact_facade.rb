@@ -3,19 +3,19 @@ module CorikaInvoices
     attr_accessor :customer
 
     def initialize(customer)
-      self.customer=customer
+      self.customer = customer
     end
 
     def postcode
-      self.customer.zip
+      customer.zip
     end
 
     def city
-      self.customer.city[0..65]
+      customer.city[0..65]
     end
 
     def country
-      self.customer.country 
+      customer.country
     end
 
     def phone
@@ -27,15 +27,15 @@ module CorikaInvoices
     end
 
     def name
-      self.customer.account_owner[0..65]
+      customer.account_owner[0..65]
     end
 
     def addr
-      self.customer.street[0..65]
+      customer.street[0..65]
     end
 
     def contact
-      self.customer.fullname[0..65]
+      customer.fullname[0..65]
     end
   end
 end

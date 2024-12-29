@@ -64,7 +64,7 @@ module CorikaInvoices
       if direct_debits.count.positive?
         throw :invalid_request
       else
-        unless customer.is_direct_debit?
+        unless customer.direct_debit?
           Rails.logger.info("Customer #{customer.customer_id} is not considered for CreditTransfer - no IBAN/BIC!")
           return false
         end

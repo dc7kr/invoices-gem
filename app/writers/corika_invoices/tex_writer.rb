@@ -34,19 +34,20 @@ module CorikaInvoices
       end
 
       File.open("#{config.work_dir}/variables.tex", 'w') do |out_file|
-        write_our_data(f, contact)
-        write_common(f, invoice.customer)
-        callback&.writeAdditionalVars(f, invoice)
+        write_our_data(out_file, contact)
+        write_common(out_file, invoice.customer)
+        callback&.writeAdditionalVars(out_file, invoice)
         out_file.write("\\newcommand{\\jahr}{#{year}}\n")
         out_file.write("\\newcommand{\\renummer}{#{invoice.number}}\n")
         out_file.write("\\newcommand{\\zweck}{#{invoice.number}}\n")
         out_file.write("\\newcommand{\\rechnungTyp}{#{invoice.tax_type}}\n")
+        out_file.write("\\newcommand{\\redatum}{#{I18n.l(invoice.invoice_date, format: :long)}}\n")
       end
 
       pos = 1
       File.open("#{config.work_dir}/posten.tex", 'w') do |out_file|
         invoice.items.each do |i|
-          write_invoice_item(f, pos, i)
+          write_invoice_item(out_file, pos, i)
           Rails.logger.debug("wrote invoice item: #{i.count}x#{i.price}:#{i.label}")
           pos += 1
         end
@@ -92,13 +93,10 @@ module CorikaInvoices
 
     def write_common(out_file, customer)
       out_file.write("\\newcommand{\\customerId}{#{customer.customer_id}}\n")
-      if customer.is_direct_debit?
+      if customer.direct_debit?
         out_file.write('\newcommand{\directDebit}{1}')
-        out_file.write("\n")
         out_file.write("\\newcommand{\\iban}{#{customer.iban}}\n")
         out_file.write("\\newcommand{\\bic}{#{customer.bic}}\n")
-        out_file.write("\n")
-
         out_file.write("\\newcommand{\\mandateRef}{#{customer.mandate_id}}\n")
         out_file.write("\\newcommand{\\glaeubigerId}{#{config.creditor_id}}\n")
       else
@@ -130,11 +128,13 @@ module CorikaInvoices
                    end
 
       out_file.write("\\newcommand{\\country}{#{country_en}}\n")
+
       if customer.email.nil?
         out_file.write("\\newcommand{\\email}{0}\n")
       else
         out_file.write("\\newcommand{\\email}{#{customer.email}}\n")
       end
+
       if !customer.last_name.nil?
         out_file.write("\\newcommand{\\anredetxt}{#{customer.salutation_line}}\n")
       else
@@ -205,7 +205,7 @@ module CorikaInvoices
       cli = "#{batch} #{invoice_type} #{date_prefix} #{customer_id}"
 
       env = {}
-      env['TEX'] = con fig.tex_exe
+      env['TEX'] = config.tex_exe
       env['TEX_DIR'] = config.tex_dir
       env['TEX_BRANDING_DIR'] = config.tex_branding_dir
       env['OUT_DIR'] = config.work_dir

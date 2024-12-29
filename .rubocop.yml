@@ -17,3 +17,6 @@ Metrics/PerceivedComplexity:
 
 Metrics/ClassLength:
   Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false

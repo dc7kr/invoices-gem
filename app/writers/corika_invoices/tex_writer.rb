@@ -28,7 +28,7 @@ module CorikaInvoices
         return
       end
 
-      unless contact.is_valid?
+      unless contact.valid?
         Rails.logger.warn('Contact is invalid (data missing)')
         return
       end

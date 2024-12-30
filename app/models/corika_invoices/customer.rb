@@ -59,7 +59,7 @@ module CorikaInvoices
 
     def to_yaml
       hash = to_hash
-      hash['dd'] = is_direct_debit?
+      hash['dd'] = direct_debit?
 
       hash.to_yaml
     end

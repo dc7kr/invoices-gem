@@ -217,7 +217,7 @@ module CorikaInvoices
 
       ENV.update(env)
 
-      system(cli)
+      IO.popen(cli) { |io| while (line = io.gets) do Rails.logger.debug line end }
 
       out_file
     end

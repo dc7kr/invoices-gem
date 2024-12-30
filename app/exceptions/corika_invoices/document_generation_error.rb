@@ -1,7 +1,7 @@
 module CorikaInvoices
   class DocumentGenerationError < StandardError
     def initialize(message)
-      @message = message
+      super(message)
     end
   end
 end

@@ -1,7 +1,6 @@
 module CorikaInvoices
   class Invoice
     include Mongoid::Document
-    include FileArchiveHelper
 
     field :number, type: String
     field :invoice_date, type: Date
@@ -163,7 +162,7 @@ module CorikaInvoices
     end
 
     def gen_sepa_booking(sepa_writer)
-      if customer.is_direct_debit?
+      if customer.direct_debit?
         sepa_writer.add_direct_debit(customer, sum, number, 'RCUR')
         true
       else

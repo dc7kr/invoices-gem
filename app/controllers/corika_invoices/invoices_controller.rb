@@ -1,8 +1,6 @@
 module CorikaInvoices
   #  NOTE: inherits from CorikaInvoices::ApplicationController
   class InvoicesController < ApplicationController
-    include FileArchiveHelper
-
     def index
       @invoices = Invoice.all.page(params[:page]).per(30)
       respond_to do |format|

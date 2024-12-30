@@ -152,7 +152,7 @@ module CorikaInvoices
 
       # contact can override the bank account for DD
 
-      if !our_contact.has_bank_account?
+      if !our_contact.bank_account?
         # use default bank account
         out_file.write("\\newcommand{\\myBank}{#{config.bank}}\n")
         out_file.write("\\newcommand{\\myIBAN}{#{config.iban}}\n")

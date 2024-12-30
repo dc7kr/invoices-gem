@@ -89,7 +89,7 @@ module CorikaInvoices
 
         date_prefix = Time.now.strftime '%Y%m%d%H%M%S'
 
-        tex_writer.writeInvoice(self, our_contact, year)
+        tex_writer.write_invoice(self, our_contact, year)
 
         work_pdf_file = tex_writer.gen_pdf(invoice_type, date_prefix, customer.customer_id)
 

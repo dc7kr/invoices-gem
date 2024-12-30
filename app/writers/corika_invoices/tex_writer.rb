@@ -33,6 +33,8 @@ module CorikaInvoices
         return
       end
 
+      FileUtils.mkdir_p config.work_dir unless Dir.exist?(config.work_dir)
+
       File.open("#{config.work_dir}/variables.tex", 'w') do |out_file|
         write_our_data(out_file, contact)
         write_common(out_file, invoice.customer)

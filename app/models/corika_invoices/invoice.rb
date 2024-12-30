@@ -1,6 +1,7 @@
 module CorikaInvoices
   class Invoice
     include Mongoid::Document
+    include Hashify
 
     field :number, type: String
     field :invoice_date, type: Date

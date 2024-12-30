@@ -41,6 +41,7 @@ module CorikaInvoices
         callback&.writeAdditionalVars(out_file, invoice)
         out_file.write("\\newcommand{\\jahr}{#{year}}\n")
         out_file.write("\\newcommand{\\renummer}{#{invoice.number}}\n")
+        out_file.write("\\newcommand{\\redatum}{#{I18n.l(invoice.invoice_date, format: :long)}}\n")
         out_file.write("\\newcommand{\\zweck}{#{invoice.number}}\n")
         out_file.write("\\newcommand{\\rechnungTyp}{#{invoice.tax_type}}\n")
       end
@@ -142,7 +143,6 @@ module CorikaInvoices
         out_file.write("\\newcommand{\\anredetxt}{ Damen und Herren,}\n")
       end
       # out_file.write('\newcommand{\myStrasse}{}'+"\n")
-      out_file.write("\\newcommand{\\redatum}{#{I18n.l(invoice.invoice_date, format: :long)}}\n")
     end
 
     def write_our_data(out_file, our_contact)

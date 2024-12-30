@@ -93,7 +93,7 @@ module CorikaInvoices
 
         work_pdf_file = tex_writer.gen_pdf(invoice_type, date_prefix, customer.customer_id)
 
-        invoice_file = archive_file(INVOICE_CONFIG.work_dir, work_pdf_file, year)
+        invoice_file = CorikaInvoices::ArchiveFile.from_source_and_year(INVOICE_CONFIG.work_dir, work_pdf_file, year)
 
         Rails.logger.debug("Work_pdf: #{invoice_file}")
         Rails.logger.debug("Archived: #{work_pdf_file}")
@@ -103,7 +103,7 @@ module CorikaInvoices
         self.pdf_filename = invoice_file.orig_filename
         save
       else
-        invoice_file = MailingFile.new(pdf_filename, pdf_filename, year.to_s)
+        invoice_file = CorikaInvoices::ArchiveFile.new(pdf_filename, pdf_filename, year.to_s)
       end
 
       invoice_file
@@ -127,7 +127,7 @@ module CorikaInvoices
       unless sepa_filename.nil?
         return false if batch
 
-        return MailingFile.new(sepa_filename, sepa_filename, year.to_s)
+        return CorikaInvoices::ArchiveFile.new(sepa_filename, sepa_filename, year.to_s)
 
       end
 

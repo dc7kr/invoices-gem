@@ -36,7 +36,7 @@ module CorikaInvoices
         end
 
       else
-        dd_file = MailingFile.new(invoice.sepa_filename, invoice.pdf_filename, year.to_s)
+        dd_file = CorikaInvoices::ArchiveFile.new(invoice.sepa_filename, invoice.pdf_filename, year.to_s)
       end
 
       send_file(dd_file.full_path)

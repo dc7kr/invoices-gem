@@ -113,7 +113,7 @@ module CorikaInvoices
         sepaxml = create_credit_transfer(credit_transfers)
       end
 
-      outfile = MailingFile.new(filename, filename, year.to_s)
+      outfile = CorikaInvoices::ArchiveFile.new(filename, filename, year.to_s)
       ensure_target_dir_exists(outfile.full_path)
 
       sepa_file = File.open(outfile.full_path, 'w')

@@ -15,7 +15,7 @@ module CorikaInvoices
 
       src_file_name = File.join(srcdir, filename)
 
-      raise CorikaInvoices::DocumentGenerationError.new("File does not exist: #{src_file_name}") unless File.exist? src_file_name
+      raise CorikaInvoices::DocumentGenerationError, "File does not exist: #{src_file_name}" unless File.exist? src_file_name
 
       Rails.logger.debug("move #{src_file_name} to #{target.full_path}")
       FileUtils.mv(src_file_name, target.full_path)

@@ -1,5 +1,7 @@
 module CorikaInvoices
   class ArchiveFile
+    include Hashify
+
     attr_accessor :visible_filename, :orig_filename, :archive_folder
 
     def self.from_hash(hash)

@@ -1,3 +1,5 @@
+require 'securerandom'
+
 module CorikaInvoices
   class TexWriter
     attr_accessor :config, :callback
@@ -23,6 +25,8 @@ module CorikaInvoices
     def write_invoice(invoice, contact_id, year)
       contact = CorikaInvoices::Contact.new(INVOICE_CONTACT_HASH[contact_id])
 
+      self.uuid = SecureRandom.uuid
+
       if contact.nil?
         Rails.logger.warn('CONTACT is nil! aborting')
         return
@@ -35,7 +39,7 @@ module CorikaInvoices
 
       FileUtils.mkdir_p config.work_dir unless Dir.exist?(config.work_dir)
 
-      File.open("#{config.work_dir}/variables.tex", 'w') do |out_file|
+      File.open("#{config.work_dir}/variables-#{uuid}.tex", 'w') do |out_file|
         write_our_data(out_file, contact)
         write_common(out_file, invoice.customer)
         callback&.writeAdditionalVars(out_file, invoice)
@@ -47,7 +51,7 @@ module CorikaInvoices
       end
 
       pos = 1
-      File.open("#{config.work_dir}/posten.tex", 'w') do |out_file|
+      File.open("#{config.work_dir}/posten-#{uuid}.tex", 'w') do |out_file|
         invoice.items.each do |i|
           write_invoice_item(out_file, pos, i)
           Rails.logger.debug("wrote invoice item: #{i.count}x#{i.price}:#{i.label}")
@@ -203,7 +207,7 @@ module CorikaInvoices
     def gen_pdf(invoice_type, date_prefix, customer_id)
       out_file = "#{date_prefix}-#{customer_id}-#{invoice_type}.pdf"
       batch = File.join(config.tool_dir, 'bin/invoice.sh')
-      cli = "#{batch} #{invoice_type} #{date_prefix} #{customer_id}"
+      cli = "#{batch} #{invoice_type} #{date_prefix} #{customer_id} #{self.uuid}"
 
       env = {}
       env['TEX'] = config.tex_exe

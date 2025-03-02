@@ -10,15 +10,18 @@ module CorikaInvoices
     field :street, type: String
     field :zip, type: String
     field :city, type: String
-    field :country, type: String
+    field :country_id, type: String
+    field :greeting, type: String
     field :email, type: String
     field :iban, type: String
     field :bic, type: String
     field :account_owner, type: String
     field :company, type: String
-    field :mandate_id, type: String
+    field :dept, type: String
+    field :mandate_ref, type: String
     field :sig_date, type: Date
     field :direct_debit, type: Boolean
+    field :our_id, type: String
     field :entity_type, type: String
     field :entity_id, type: Integer
 
@@ -47,19 +50,9 @@ module CorikaInvoices
       entity_type.constantize.find(entity_id)
     end
 
-    def salutation_line
-      if salutation == 'M'
-        "r Herr #{last_name}"
-      elsif salutation == 'W'
-        " Frau #{last_name}"
-      else
-        ' Damen und Herren'
-      end
-    end
-
     def to_yaml
       hash = to_hash
-      hash['dd'] = direct_debit?
+      hash['direct_debit'] = direct_debit?
 
       hash.to_yaml
     end

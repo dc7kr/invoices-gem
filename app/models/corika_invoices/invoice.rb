@@ -14,6 +14,9 @@ module CorikaInvoices
     field :booking_year, type: Integer
 
     embeds_one :customer
+    embeds_one :seller, store_as: 'me'
+    embeds_one :invoice_sum, store_as: 'sum'
+
     embeds_many :invoice_items, store_as: 'items'
 
     def consider_item(count, price, label)
@@ -164,7 +167,7 @@ module CorikaInvoices
 
     def gen_sepa_booking(sepa_writer)
       if customer.direct_debit?
-        sepa_writer.add_direct_debit(customer, sum, number, 'RCUR')
+        sepa_writer.add_direct_debit(customer, invoice_sum.due_payable, number, 'RCUR')
         true
       else
         false

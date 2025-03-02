@@ -7,17 +7,26 @@ module CorikaInvoices
     field :count, type: Integer
     field :net_price, type: Float
     field :price, type: Float
+    field :tax_type, type: String
     field :tax_rate, type: Float
     field :label, type: String
+    field :unit_code, type: String
+
+    field :total, type: Float
+    field :basis_price, type: Float
+    field :basis_count, type: Float
 
     validates_presence_of :count, :price, :label
 
-    def self.create(count, price, label, net_price = nil, tax_rate = INVOICE_CONFIG.taxrate)
+    def self.create(count, price, label, tax_rate = INVOICE_CONFIG.taxrate)
       i = InvoiceItem.new
       i.count = count
-      i.price = price
+      i.unit_code = 'C62'
+      i.basis = price
+      i.net_amount = price
       i.label = label
-      i.net_price = net_price
+
+      i.tax_type = 'S'
       i.tax_rate = tax_rate
 
       i

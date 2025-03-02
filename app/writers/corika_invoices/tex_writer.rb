@@ -207,7 +207,7 @@ module CorikaInvoices
     def gen_pdf(invoice_type, date_prefix, customer_id)
       out_file = "#{date_prefix}-#{customer_id}-#{invoice_type}.pdf"
       batch = File.join(config.tool_dir, 'bin/invoice.sh')
-      cli = "#{batch} #{invoice_type} #{date_prefix} #{customer_id} #{self.uuid}"
+      cli = "#{batch} #{invoice_type} #{date_prefix} #{customer_id} #{uuid}"
 
       env = {}
       env['TEX'] = config.tex_exe

@@ -1,3 +1,4 @@
+require 'yaml'
 module CorikaInvoices
   class Invoice
     include Mongoid::Document
@@ -5,25 +6,44 @@ module CorikaInvoices
 
     field :number, type: String
     field :invoice_date, type: Date
-    field :our_contact, type: String
     field :invoice_type, type: String
-    field :tax_type, type: String
+    field :tax_mode, type: String
+    field :typecode, type: Integer
+    field :seq_nr, type: Integer
     field :pdf_filename, type: String
     field :sepa_filename, type: String
     field :generator_session_id, type: String
     field :booking_year, type: Integer
+    field :reference_id, type: String
+    field :reference_type, type: String
+    field :exemption_reason, type: String
+    field :locale, type: String
+
 
     embeds_one :customer
+    embeds_one :contact
     embeds_many :invoice_items, store_as: 'items'
 
-    def consider_item(count, price, label)
-      return false if count.nil? || count.zero?
-
-      add_item(count, price, label)
+    def initialize
+      super
+      # "normal invoice" by default
+      self.typecode = 380
+      self.seq_nr = CorikaInvoices::Invoice.max(:seq_nr)+1
     end
 
-    def add_item(count, price, label)
-      item = InvoiceItem.create(count, price, label)
+    def consider_item(count, price, label)
+      if count.nil? || count.zero?
+        return nil
+      end
+
+      i = add_item(count, price, label)
+      i.tax_type = tax_mode
+
+      i
+    end
+
+    def add_item(count, price, label, type_code="C62", p_tax_mode=tax_mode)
+      item = InvoiceItem.create(count, price, label, type_code, p_tax_mode)
 
       invoice_items << item
 
@@ -71,10 +91,6 @@ module CorikaInvoices
       invoice_file = nil
       self.invoice_date = Time.now if invoice_date.nil?
 
-      if our_contact.nil?
-        Rails.logger.warn('setting contact to default')
-        self.our_contact = 'default'
-      end
       year = if booking_year.nil?
                invoice_date.year
              else
@@ -176,11 +192,81 @@ module CorikaInvoices
     end
 
     def to_yaml
-      customer.to_yaml
-      invoice.contact.to_yaml
-      invoice = invoice.to_yaml
 
-      invoice.to_yaml
+       invoice_hash = {
+        :invoice => {
+          :date => I18n.l(invoice_date, format: :long), # "02. Juli 2025"
+          :year => booking_year,
+          :locale => locale,
+          :number => "#{seq_nr}-#{number}",
+          :zweck => number,
+          :tax_mode => tax_mode,
+          :typecode => typecode
+        }
+      }
+
+      if tax_mode == "E"
+         invoice_hash[:invoice][:exemption_reason] = I18n.t("invoice.exemption_reason")
+      end
+
+      if not reference_id.nil? then
+        invoice_hash[:invoice][:reference_id] = reference_id
+        invoice_hash[:invoice][:reference_type] = reference_type
+      end
+
+      yml_invoice = invoice_hash[:invoice]
+
+
+      yml_contact = contact.to_hash
+       
+      yml_invoice[:me] = yml_contact
+
+      yml_items = Array.new
+      invoice_items.each do |item|
+        yml_items << item.to_hash
+      end
+
+      customer_hash = customer.to_hash
+      yml_invoice[:customer] = customer_hash
+
+      yml_invoice[:items] = yml_items
+
+      grand_total = 0
+      due_payable =  0
+      line_total = 0
+      tax = 0
+      tax_basis = 0
+      taxes = {}
+
+      invoice_items.each do |item|
+        grand_total += item.total+item.tax
+        line_total += item.total
+
+        tax += item.tax
+
+        if taxes[item.tax_rate].nil?
+          taxes[item.tax_rate]= {
+            rate: item.tax_rate,
+            sum: 0,
+            basis: 0
+          }
+        end
+
+        taxes[item.tax_rate][:sum]+=item.tax
+        taxes[item.tax_rate][:basis]+=item.total
+        tax_basis += item.total
+      end
+
+      yml_invoice[:sum] = {
+        grand_total:  grand_total,
+        due_payable: grand_total,
+        line_total: line_total,
+        tax: tax,
+        tax_basis: tax_basis,
+        taxes: taxes.values
+      }
+
+      CorikaInvoices::YamlCleaningVisitor.clean(invoice_hash)
     end
   end
 end

@@ -4,50 +4,73 @@ module CorikaInvoices
 
     include Hashify
 
-    field :count, type: Integer
+    field :count,     type: Integer
+    field :unit_code, type: String
+    field :tax_type,  type: String
+    field :tax_rate,  type: Float
+    field :basis,     type: Float
+    field :label,     type: String
     field :net_price, type: Float
-    field :price, type: Float
-    field :tax_rate, type: Float
-    field :label, type: String
 
-    validates_presence_of :count, :price, :label
+    validates_presence_of :count, :unit_code, :tax_type, :tax_rate, :basis, :total, :label
 
-    def self.create(count, price, label, net_price = nil, tax_rate = INVOICE_CONFIG.taxrate)
+    def self.create_gross(count, gross_price, label, tax_rate, unit_code = "C62", tax_type="S" )
+        tax_factor = tax_rate/100.0
+        net_price = gross_price/(1+tax_factor) 
+        self.create(count, net_price, label, tax_rate, unit_code)
+    end
+
+    def self.create(count, basis, label, tax_rate = INVOICE_CONFIG.taxrate, unit_code = "C62", tax_type = "S")
+
       i = InvoiceItem.new
+
+      i.basis = basis
+      i.net_price = basis
+
+ 
       i.count = count
-      i.price = price
       i.label = label
-      i.net_price = net_price
-      i.tax_rate = tax_rate
+
+      i.tax_type = tax_type
+
+      if i.tax_type == "E" 
+        i.tax_rate = 0
+      else
+        i.tax_rate = tax_rate 
+      end
+
+      i.unit_code = unit_code
 
       i
     end
 
-    def tax_total
-      if net_price.nil? || net_price.zero?
-        tax_rate * count * price / (100 + tax_rate)
+    def tax
+      if tax_type == "E" 
+        0
       else
-        tax_rate * count * net_price / 100
+        tax_rate*0.01 * count * basis 
       end
     end
 
     def net_total
-      if net_price.nil? || net_price.zero?
-        count * price / (1 + tax_rate / 100)
-      else
-        net_price * count
-      end
+      basis * count
     end
 
     def total
-      count * price
+      count * basis
     end
 
-    def to_yaml
-      hash = to_hash
-      hash['total'] = total
-
-      hash.to_yaml
+    def to_hash
+     {
+      :count => count,
+      :unit_code => unit_code,
+      :tax_type => tax_type,
+      :tax_rate => tax_rate,
+      :basis => basis,
+      :label => label,
+      :net_amount => net_price,
+      :total => total
+     }
     end
   end
 end

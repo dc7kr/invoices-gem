@@ -1,7 +1,6 @@
 module CorikaInvoices
   class Customer
     include Mongoid::Document
-    include Hashify
 
     field :customer_id, type: String
     field :salutation, type: String
@@ -57,11 +56,29 @@ module CorikaInvoices
       end
     end
 
-    def to_yaml
-      hash = to_hash
+    def to_hash
+      hash = {
+        :id => customer_id,
+        :salutation => salutation,
+        :name => "#{first_name} #{last_name}",
+        :street => street,
+        :zip => zip,
+        :city => city,
+        :country_id => country,
+        :email => email,
+        :iban => iban,
+        :bic => bic,
+        :account_owner => account_owner,
+        :company => company,
+        :mandate_id => mandate_id,
+        :sig_date => sig_date,
+        :direct_debit => direct_debit
+      }
+
+
       hash['dd'] = direct_debit?
 
-      hash.to_yaml
+      hash
     end
   end
 end

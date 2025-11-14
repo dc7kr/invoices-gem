@@ -28,27 +28,27 @@ module CorikaInvoices
       target
     end
 
-    def initialize(filename, orig_filename, archive_folder = nil)
-      @visible_filename = filename
-      @orig_filename = orig_filename
+    def initialize(visible_filename, orig_filename, archive_folder = nil)
+      self.visible_filename = visible_filename
+      self.orig_filename = orig_filename
 
-      @archive_folder = if archive_folder.nil?
+      self.archive_folder = if archive_folder.nil?
                           Time.now.year.to_s
-                        else
+      else
                           archive_folder.to_s
-                        end
+      end
     end
 
     def full_dir
-      File.join(INVOICE_CONFIG.archive_dir, @archive_folder)
+      File.join(INVOICE_CONFIG.archive_dir, self.archive_folder)
     end
 
     def relative_filename
-      File.join(@archive_folder, @orig_filename)
+      File.join(self.archive_folder, self.orig_filename)
     end
 
     def full_path
-      File.join(full_dir, @orig_filename)
+      File.join(full_dir, self.orig_filename)
     end
 
     def to_s

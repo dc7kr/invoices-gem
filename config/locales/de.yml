@@ -7,6 +7,10 @@ de:
     invoice_number: Re.-Nr. 
     sum_brutto: Summe (brutto)
     sum_netto: Summe (netto)
+    tax_mode: Steuer-Art
+    tax_modes:
+      E: "Steuerbefreit nach § 19"
+      
   invoice_item: &invoice_item_labels
     one: Rechnungselement
     other: Rechnungselemente

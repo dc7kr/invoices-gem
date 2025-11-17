@@ -58,23 +58,22 @@ module CorikaInvoices
 
     def to_hash
       hash = {
-        :id => customer_id,
-        :salutation => salutation,
-        :name => "#{first_name} #{last_name}",
-        :street => street,
-        :zip => zip,
-        :city => city,
-        :country_id => country,
-        :email => email,
-        :iban => iban,
-        :bic => bic,
-        :account_owner => account_owner,
-        :company => company,
-        :mandate_id => mandate_id,
-        :sig_date => sig_date,
-        :direct_debit => direct_debit
+        id: customer_id,
+        salutation: salutation,
+        name: "#{first_name} #{last_name}",
+        street: street,
+        zip: zip,
+        city: city,
+        country_id: country,
+        email: email,
+        iban: iban,
+        bic: bic,
+        account_owner: account_owner,
+        company: company,
+        mandate_id: mandate_id,
+        sig_date: sig_date,
+        direct_debit: direct_debit
       }
-
 
       hash['dd'] = direct_debit?
 

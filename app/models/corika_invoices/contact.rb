@@ -24,7 +24,6 @@ module CorikaInvoices
     field :creditor_id, type: String
     field :country_id, type: String
 
-
     def initialize(hash)
       throw :contact_data_nil if hash.nil?
       super
@@ -38,11 +37,11 @@ module CorikaInvoices
       self.vat_id = INVOICE_CONFIG.payee.vat_id
       self.tax_reg = INVOICE_CONFIG.payee.tax_reg
       self.creditor_id = INVOICE_CONFIG.payee.creditor_id
-      
+
       # only use default IBAN/BIC/Bank if it is not overridden by contact hash
-      self.iban = INVOICE_CONFIG.payee.creditor_id if self.iban.nil?
-      self.bank = INVOICE_CONFIG.payee.bank if self.bank.nil?
-      self.bic = INVOICE_CONFIG.payee.bic if self.bic.nil?
+      self.iban = INVOICE_CONFIG.payee.creditor_id if iban.nil?
+      self.bank = INVOICE_CONFIG.payee.bank if bank.nil?
+      self.bic = INVOICE_CONFIG.payee.bic if bic.nil?
     end
 
     def valid?
@@ -55,24 +54,24 @@ module CorikaInvoices
 
     def to_hash
       {
-        :iban => iban,
-        :bic => bic,
-        :phone => phone,
-        :fax =>  fax,
-        :email => email,
-        :name => name,
-        :dept => dept,
-        :street => street,
-        :city => city,
-        :country_id=> country_id,
-        :zip => zip,
-        :job => job,
-        :bank => bank,
-        :company => company,
-        :company_short => company_short,
-        :vat_id => vat_id,
-        :tax_reg => tax_reg,
-        :creditor_id => creditor_id
+        iban: iban,
+        bic: bic,
+        phone: phone,
+        fax: fax,
+        email: email,
+        name: name,
+        dept: dept,
+        street: street,
+        city: city,
+        country_id: country_id,
+        zip: zip,
+        job: job,
+        bank: bank,
+        company: company,
+        company_short: company_short,
+        vat_id: vat_id,
+        tax_reg: tax_reg,
+        creditor_id: creditor_id
       }
     end
   end

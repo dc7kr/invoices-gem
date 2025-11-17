@@ -6,7 +6,7 @@ module CorikaInvoices
                   :creditor_id, :message_prefix, :settings, :generator_session_id
 
     def initialize(date_prefix, settings, year = nil)
-      self.workdir = "#{settings.work_dir}/"
+      self.workdir = "#{settings.input_dir}/"
 
       self.date_prefix = if date_prefix.nil?
                            Time.now.strftime '%Y%m%d%H%M%S'
@@ -24,10 +24,12 @@ module CorikaInvoices
       self.direct_debits = []
       self.credit_transfers = []
 
-      self.company = settings.company
-      self.bic = settings.bic
-      self.iban = settings.iban.gsub(/ /, '')
-      self.creditor_id = settings.creditor_id
+      payee = settings.payee
+
+      self.company = payee.company
+      self.bic = payee.bic
+      self.iban = payee.iban.gsub(/ /, '')
+      self.creditor_id = payee.creditor_id
       self.message_prefix = settings.message_prefix
 
       self.message_prefix = 'KRI' if message_prefix.nil?

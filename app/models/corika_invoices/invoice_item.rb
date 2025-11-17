@@ -14,30 +14,28 @@ module CorikaInvoices
 
     validates_presence_of :count, :unit_code, :tax_type, :tax_rate, :basis, :total, :label
 
-    def self.create_gross(count, gross_price, label, tax_rate, unit_code = "C62", tax_type="S" )
-        tax_factor = tax_rate/100.0
-        net_price = gross_price/(1+tax_factor) 
-        self.create(count, net_price, label, tax_rate, unit_code)
+    def self.create_gross(count, gross_price, label, unit_code = 'C62', tax_rate = INVOICE_CONFIG.taxrate, tax_type = 'S')
+      tax_factor = tax_rate / 100.0
+      net_price = gross_price / (1 + tax_factor)
+      create(count, net_price, label, unit_code, tax_rate, tax_type)
     end
 
-    def self.create(count, basis, label, tax_rate = INVOICE_CONFIG.taxrate, unit_code = "C62", tax_type = "S")
-
+    def self.create(count, basis, label, unit_code = 'C62', tax_rate = INVOICE_CONFIG.taxrate, tax_type = 'S')
       i = InvoiceItem.new
 
       i.basis = basis
       i.net_price = basis
 
- 
       i.count = count
       i.label = label
 
       i.tax_type = tax_type
 
-      if i.tax_type == "E" 
-        i.tax_rate = 0
-      else
-        i.tax_rate = tax_rate 
-      end
+      i.tax_rate = if i.tax_type == 'E'
+                     0
+                   else
+                     tax_rate
+                   end
 
       i.unit_code = unit_code
 
@@ -45,10 +43,10 @@ module CorikaInvoices
     end
 
     def tax
-      if tax_type == "E" 
+      if tax_type == 'E'
         0
       else
-        tax_rate*0.01 * count * basis 
+        tax_rate * 0.01 * count * basis
       end
     end
 
@@ -61,16 +59,16 @@ module CorikaInvoices
     end
 
     def to_hash
-     {
-      :count => count,
-      :unit_code => unit_code,
-      :tax_type => tax_type,
-      :tax_rate => tax_rate,
-      :basis => basis,
-      :label => label,
-      :net_amount => net_price,
-      :total => total
-     }
+      {
+        count: count,
+        unit_code: unit_code,
+        tax_type: tax_type,
+        tax_rate: tax_rate,
+        basis: basis,
+        label: label,
+        net_amount: net_price,
+        total: total
+      }
     end
   end
 end

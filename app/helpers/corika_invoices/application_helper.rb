@@ -42,11 +42,7 @@ module CorikaInvoices
 
   def respond_to?(method)
     if method.to_s.end_with?('_path') || method.to_s.end_with?('_url')
-      if main_app.respond_to?(method)
-        true
-      else
-        super
-      end
+      main_app.respond_to?(method) || super
     else
       super
     end

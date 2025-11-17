@@ -6,7 +6,6 @@ module CorikaInvoices
 
     field :number, type: String
     field :invoice_date, type: Date
-    field :invoice_type, type: String
     field :tax_mode, type: String
     field :typecode, type: Integer
     field :seq_nr, type: Integer
@@ -18,7 +17,8 @@ module CorikaInvoices
     field :reference_type, type: String
     field :exemption_reason, type: String
     field :locale, type: String
-
+    field :template, type: String
+    field :template_subdir, type: String
 
     embeds_one :customer
     embeds_one :contact
@@ -28,22 +28,22 @@ module CorikaInvoices
       super
       # "normal invoice" by default
       self.typecode = 380
-      self.seq_nr = CorikaInvoices::Invoice.max(:seq_nr)+1
+      self.locale = 'de'
+      self.seq_nr = CorikaInvoices::Invoice.max(:seq_nr) + 1
+    end
+
+    def full_number
+      "#{seq_nr}-#{number}"
     end
 
     def consider_item(count, price, label)
-      if count.nil? || count.zero?
-        return nil
-      end
+      return nil if count.nil? || count.zero?
 
-      i = add_item(count, price, label)
-      i.tax_type = tax_mode
-
-      i
+      add_item(count, price, label)
     end
 
-    def add_item(count, price, label, type_code="C62", p_tax_mode=tax_mode)
-      item = InvoiceItem.create(count, price, label, type_code, p_tax_mode)
+    def add_item(count, price, label, unit_code = 'C62', _p_tax_rate = INVOICE_CONFIG.taxrate, p_tax_mode = tax_mode)
+      item = InvoiceItem.create(count, price, label, unit_code, INVOICE_CONFIG.taxrate, p_tax_mode)
 
       invoice_items << item
 
@@ -72,7 +72,7 @@ module CorikaInvoices
     def sum
       sum = 0.0
       invoice_items.each do |item|
-        sum += item.count * item.price
+        sum += item.total
       end
 
       sum
@@ -86,8 +86,7 @@ module CorikaInvoices
       invoice_items << item
     end
 
-    # TW is either a TexWriter or TexWriterCallback instance
-    def gen_pdf(tex_writer = nil)
+    def gen_pdf
       invoice_file = nil
       self.invoice_date = Time.now if invoice_date.nil?
 
@@ -98,24 +97,26 @@ module CorikaInvoices
              end
 
       if pdf_filename.nil?
-        if tex_writer.nil?
-          tex_writer = CorikaInvoices::TexWriter.new(INVOICE_CONFIG)
-        elsif tex_writer.is_a? TexWriterCallback
-          tex_writer = CorikaInvoices::TexWriter.new(INVOICE_CONFIG, twc)
-        end
+
+        to_yaml
 
         date_prefix = Time.now.strftime '%Y%m%d%H%M%S'
+        pdf_generator = CorikaInvoices::PdfGenerator.new(INVOICE_CONFIG)
 
-        tex_writer.write_invoice(self, our_contact, year)
+        work_pdf_file = pdf_generator.gen_pdf(self)
+        # content: <uuid>.pdf
 
-        work_pdf_file = tex_writer.gen_pdf(invoice_type, date_prefix, customer.customer_id)
+        target_file_name = "#{date_prefix}_#{seq_nr}_#{number}.pdf"
 
-        invoice_file = CorikaInvoices::ArchiveFile.from_source_and_year(INVOICE_CONFIG.work_dir, work_pdf_file, year)
+        Rails.logger.debug("Work_pdf: #{work_pdf_file}")
 
-        Rails.logger.debug("Work_pdf: #{invoice_file}")
-        Rails.logger.debug("Archived: #{work_pdf_file}")
+        pdf_generator.archive_generated_file(work_pdf_file, target_file_name, year)
 
-        return nil if invoice_file.nil?
+        return nil if work_pdf_file.nil?
+
+        invoice_file = CorikaInvoices::ArchiveFile.new(target_file_name, target_file_name, year.to_s)
+
+        Rails.logger.debug("Archived: #{work_pdf_file}->#{invoice_file.full_path}")
 
         self.pdf_filename = invoice_file.orig_filename
         save
@@ -192,36 +193,34 @@ module CorikaInvoices
     end
 
     def to_yaml
-
-       invoice_hash = {
-        :invoice => {
-          :date => I18n.l(invoice_date, format: :long), # "02. Juli 2025"
-          :year => booking_year,
-          :locale => locale,
-          :number => "#{seq_nr}-#{number}",
-          :zweck => number,
-          :tax_mode => tax_mode,
-          :typecode => typecode
+      invoice_hash = {
+        invoice: {
+          date: I18n.l(invoice_date, format: :long), # "02. Juli 2025"
+          year: booking_year,
+          locale: locale,
+          number: full_number,
+          zweck: number,
+          tax_mode: tax_mode,
+          typecode: typecode,
+          template: template,
+          template_subdir: template_subdir
         }
       }
 
-      if tax_mode == "E"
-         invoice_hash[:invoice][:exemption_reason] = I18n.t("invoice.exemption_reason")
-      end
+      invoice_hash[:invoice][:exemption_reason] = I18n.t('invoice.exemption_reason') if tax_mode == 'E'
 
-      if not reference_id.nil? then
+      unless reference_id.nil?
         invoice_hash[:invoice][:reference_id] = reference_id
         invoice_hash[:invoice][:reference_type] = reference_type
       end
 
       yml_invoice = invoice_hash[:invoice]
 
-
       yml_contact = contact.to_hash
-       
+
       yml_invoice[:me] = yml_contact
 
-      yml_items = Array.new
+      yml_items = []
       invoice_items.each do |item|
         yml_items << item.to_hash
       end
@@ -232,33 +231,32 @@ module CorikaInvoices
       yml_invoice[:items] = yml_items
 
       grand_total = 0
-      due_payable =  0
       line_total = 0
       tax = 0
       tax_basis = 0
       taxes = {}
 
       invoice_items.each do |item|
-        grand_total += item.total+item.tax
+        grand_total += item.total + item.tax
         line_total += item.total
 
         tax += item.tax
 
         if taxes[item.tax_rate].nil?
-          taxes[item.tax_rate]= {
+          taxes[item.tax_rate] = {
             rate: item.tax_rate,
             sum: 0,
             basis: 0
           }
         end
 
-        taxes[item.tax_rate][:sum]+=item.tax
-        taxes[item.tax_rate][:basis]+=item.total
+        taxes[item.tax_rate][:sum] += item.tax
+        taxes[item.tax_rate][:basis] += item.total
         tax_basis += item.total
       end
 
       yml_invoice[:sum] = {
-        grand_total:  grand_total,
+        grand_total: grand_total,
         due_payable: grand_total,
         line_total: line_total,
         tax: tax,

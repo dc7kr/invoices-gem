@@ -86,7 +86,7 @@ module CorikaInvoices
       invoice_items << item
     end
 
-    def gen_pdf
+    def gen_pdf(test_mode=false)
       invoice_file = nil
       self.invoice_date = Time.now if invoice_date.nil?
 
@@ -119,7 +119,7 @@ module CorikaInvoices
         Rails.logger.debug("Archived: #{work_pdf_file}->#{invoice_file.full_path}")
 
         self.pdf_filename = invoice_file.orig_filename
-        save
+        save unless test_mode
       else
         invoice_file = CorikaInvoices::ArchiveFile.new(pdf_filename, pdf_filename, year.to_s)
       end

@@ -39,7 +39,7 @@ module CorikaInvoices
       self.creditor_id = INVOICE_CONFIG.payee.creditor_id
 
       # only use default IBAN/BIC/Bank if it is not overridden by contact hash
-      self.iban = INVOICE_CONFIG.payee.creditor_id if iban.nil?
+      self.iban = INVOICE_CONFIG.payee.iban if iban.nil?
       self.bank = INVOICE_CONFIG.payee.bank if bank.nil?
       self.bic = INVOICE_CONFIG.payee.bic if bic.nil?
     end

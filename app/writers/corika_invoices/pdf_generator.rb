@@ -36,9 +36,7 @@ module CorikaInvoices
                        config.custom_dir
                      end
 
-      p config
-      p "Config template dir: #{config.template_dir}"
-      p "Template dir: #{template_dir}"
+      Rails.logger.debug("Template dir: #{template_dir}")
 
       env['INVOICE_CUSTOM_DIR'] = template_dir
       env['INVOICE_TEX_BIN'] = config.tex_bin

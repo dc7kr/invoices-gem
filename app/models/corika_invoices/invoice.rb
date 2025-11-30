@@ -192,8 +192,8 @@ module CorikaInvoices
       invoice_items.length.positive?
     end
 
-    def to_yaml
-      invoice_hash = {
+    def to_hash
+      retval = {
         invoice: {
           date: I18n.l(invoice_date, format: :long), # "02. Juli 2025"
           year: booking_year,
@@ -207,28 +207,29 @@ module CorikaInvoices
         }
       }
 
-      invoice_hash[:invoice][:exemption_reason] = I18n.t('invoice.exemption_reason') if tax_mode == 'E'
+      h_invoice = retval[:invoice]
+
+      h_invoice[:exemption_reason] = I18n.t('invoice.exemption_reason') if tax_mode == 'E'
 
       unless reference_id.nil?
-        invoice_hash[:invoice][:reference_id] = reference_id
-        invoice_hash[:invoice][:reference_type] = reference_type
+        h_invoice[:reference_id] = reference_id
+        h_invoice[:reference_type] = reference_type
       end
 
-      yml_invoice = invoice_hash[:invoice]
 
-      yml_contact = contact.to_hash
+      h_contact = contact.to_hash
 
-      yml_invoice[:me] = yml_contact
+      h_invoice[:me] = h_contact
 
-      yml_items = []
+      h_items = []
       invoice_items.each do |item|
-        yml_items << item.to_hash
+        h_items << item.to_hash
       end
 
       customer_hash = customer.to_hash
-      yml_invoice[:customer] = customer_hash
+      h_invoice[:customer] = customer_hash
 
-      yml_invoice[:items] = yml_items
+      h_invoice[:items] = h_items
 
       grand_total = 0
       line_total = 0
@@ -255,7 +256,7 @@ module CorikaInvoices
         tax_basis += item.total
       end
 
-      yml_invoice[:sum] = {
+      h_invoice[:sum] = {
         grand_total: grand_total,
         due_payable: grand_total,
         line_total: line_total,
@@ -263,6 +264,12 @@ module CorikaInvoices
         tax_basis: tax_basis,
         taxes: taxes.values
       }
+
+      retval
+    end
+
+    def to_yaml
+      invoice_hash = to_hash
 
       CorikaInvoices::YamlCleaningVisitor.clean(invoice_hash)
     end

@@ -2,14 +2,17 @@ de:
   invoice: &invoice_labels
     one: Rechnung
     other: Rechnungen
+    template: Vorlage
+    preview: "Rechnungsvorschau"
     invoice_type: Rechnungs-Typ
     invoice_date: Rechnungs-Datum
     invoice_number: Re.-Nr. 
     sum_brutto: Summe (brutto)
     sum_netto: Summe (netto)
-    tax_mode: Steuer-Art
+    tax_mode: Steuer-Modus
     tax_modes:
       E: "Steuerbefreit nach § 19"
+      S: "Reguläre USt-Pflicht"
       
   invoice_item: &invoice_item_labels
     one: Rechnungselement

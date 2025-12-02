@@ -59,7 +59,7 @@ module CorikaInvoices
     def to_hash
       hash = {
         id: customer_id,
-        salutation: I18n.t("common.salutations."+salutation),
+        salutation: I18n.t("common.salutations.#{salutation}"),
         greeting:  salutation_line,
         name: "#{first_name} #{last_name}",
         street: street,

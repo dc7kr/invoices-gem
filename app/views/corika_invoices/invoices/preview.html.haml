@@ -1,0 +1,58 @@
+= render layout: 'layouts/modal', locals: { title: t("invoice.preview") } do 
+  %h2=@invoice_hash[:number]
+  .row
+    .col=t("invoice.invoice_date")
+    .col=@invoice_hash[:date]
+
+  .row
+    .col=t("invoice.template")
+    .col=@invoice_hash[:template]
+  .row
+    .col=t("invoice.tax_mode")
+    .col=t("invoice.tax_modes.#{@invoice_hash[:tax_mode]}")
+
+  %table.table
+    %thead.table-dark
+      %tr
+        %th Anzahl
+        %th Beschreibung
+        %th USt
+        %th Einzelpreis
+        %th Gesamtpreis
+    %tbody
+      - @invoice_hash[:items].each do |it|
+        %tr
+          %td=it[:count]
+          %td=it[:label]
+          %td #{it[:tax_rate]} %
+          %td.text-end=format_currency it[:basis]
+          %td.text-end=format_currency it[:total]
+    %tfoot
+      - if @invoice_hash[:tax_mode] == 'S'
+        %tr
+          %td &nbsp;
+          %td.text-end.fw-bold Summe
+          %td &nbsp;
+          %td &nbsp;
+          %td.text-end.fw-bold=format_currency @invoice_hash[:sum][:line_total]
+
+        - @invoice_hash[:sum][:taxes].each do |tax|
+          %tr
+            %td &nbsp;
+            %td.text-end.fw-bold MwSt
+            %td.fw-bold #{tax[:rate]} %
+            - if @invoice_hash[:sum][:taxes].size > 1
+              %td.text-end.fw-bold=format_currency tax[:basis]
+            - else 
+              %td &nbsp;
+            %td.text-end.fw-bold=format_currency tax[:sum]
+      %tr
+        %td &nbsp;
+        %td.text-end.fw-bold Gesamtsumme
+        %td &nbsp;
+        - if @invoice_hash[:sum][:taxes].size > 1
+          %td.text-end.fw-bold=format_currency @invoice.net_sum
+        - else
+          %td &nbsp;
+        %td.text-end.fw-bold=format_currency @invoice_hash[:sum][:grand_total]
+

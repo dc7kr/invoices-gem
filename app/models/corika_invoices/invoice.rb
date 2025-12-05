@@ -88,7 +88,7 @@ module CorikaInvoices
 
     def gen_pdf(test_mode=false)
       invoice_file = nil
-      self.invoice_date = Time.now if invoice_date.nil?
+      self.invoice_date = Time.now.to_date if invoice_date.nil?
 
       year = if booking_year.nil?
                invoice_date.year
@@ -195,7 +195,7 @@ module CorikaInvoices
     def to_hash
       retval = {
         invoice: {
-          date: I18n.l(invoice_date, format: :long), # "02. Juli 2025"
+          date: invoice_date.to_date.iso8601,
           year: booking_year,
           locale: locale,
           number: full_number,

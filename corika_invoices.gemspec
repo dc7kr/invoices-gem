@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'mongoid'
   s.add_dependency 'kaminari-mongoid'
   s.add_dependency 'rails', '>=  5.0'
+  s.add_dependency 'sepa_king'
 
   s.add_development_dependency 'rubocop'
   s.add_development_dependency 'rubocop-rails-omakase'

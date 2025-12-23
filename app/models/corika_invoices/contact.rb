@@ -63,7 +63,7 @@ module CorikaInvoices
         dept: dept,
         street: street,
         city: city,
-        country_id: country_id,
+        country_id: country_id.upcase,
         zip: zip,
         job: job,
         bank: bank,

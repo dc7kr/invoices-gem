@@ -29,11 +29,23 @@ module CorikaInvoices
       # "normal invoice" by default
       self.typecode = 380
       self.locale = 'de'
-      self.seq_nr = CorikaInvoices::Invoice.max(:seq_nr) + 1
+
+      max_seq = CorikaInvoices::Invoice.max(:seq_nr) 
+
+      if max_seq.nil?
+        Rails.logger.warn("invoice max seq = 0")
+        max_seq = 0
+      end
+
+      self.seq_nr = max_seq + 1
     end
 
     def full_number
-      "#{seq_nr}-#{number}"
+      if not number.nil? and not number.empty?
+        "#{seq_nr}-#{number}"
+      else
+        seq_nr
+      end
     end
 
     def consider_item(count, price, label)
@@ -203,19 +215,21 @@ module CorikaInvoices
           tax_mode: tax_mode,
           typecode: typecode,
           template: template,
-          template_subdir: template_subdir
         }
       }
 
       h_invoice = retval[:invoice]
 
+      if not template_subdir.nil? and not template_subdir.empty?
+        h_invoice[:template_subdir] =  template_subdir
+      end
+
       h_invoice[:exemption_reason] = I18n.t('invoice.exemption_reason') if tax_mode == 'E'
 
       unless reference_id.nil?
-        h_invoice[:reference_id] = reference_id
+        h_invoice[:reference] = reference_id
         h_invoice[:reference_type] = reference_type
       end
-
 
       h_contact = contact.to_hash
 

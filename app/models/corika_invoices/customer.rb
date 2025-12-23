@@ -9,7 +9,7 @@ module CorikaInvoices
     field :street, type: String
     field :zip, type: String
     field :city, type: String
-    field :country, type: String
+    field :country_code, type: String
     field :email, type: String
     field :iban, type: String
     field :bic, type: String
@@ -20,6 +20,7 @@ module CorikaInvoices
     field :direct_debit, type: Boolean
     field :entity_type, type: String
     field :entity_id, type: Integer
+    field :our_id, type: String
 
     def full_name
       "#{first_name} #{last_name}"
@@ -65,7 +66,7 @@ module CorikaInvoices
         street: street,
         zip: zip,
         city: city,
-        country_id: country,
+        country_id: country_code,
         email: email,
         iban: iban,
         bic: bic,

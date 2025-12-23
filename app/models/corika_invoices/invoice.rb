@@ -48,10 +48,17 @@ module CorikaInvoices
       end
     end
 
-    def consider_item(count, price, label)
+    def consider_item(count, price, label, type_code="C62", vat=INVOICE_CONFIG.taxrate)
       return nil if count.nil? || count.zero?
 
       add_item(count, price, label)
+    end
+
+    def consider_item_gross(count, price, label, type_code="C62", vat=INVOICE_CONFIG.taxrate)
+      return nil if count.nil? || count.zero?
+
+      item = CorikaInvoices::InvoiceItem.create_gross(count, price, label, type_code, vat)
+      invoice_items << item
     end
 
     def add_item(count, price, label, unit_code = 'C62', _p_tax_rate = INVOICE_CONFIG.taxrate, p_tax_mode = tax_mode)

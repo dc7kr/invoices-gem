@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'countries'
   s.add_dependency 'kaminari'
   s.add_dependency 'mongoid'
+  s.add_dependency 'kaminari-mongoid'
   s.add_dependency 'rails', '>=  5.0'
 
   s.add_development_dependency 'rubocop'

@@ -51,11 +51,19 @@ module CorikaInvoices
     end
 
     def net_total
-      basis * count
+      if basis.nil?
+        0
+      else
+        basis * count
+      end
     end
 
     def total
-      count * basis
+      if basis.nil?
+        0
+      else
+        count * basis
+      end
     end
 
     def to_hash

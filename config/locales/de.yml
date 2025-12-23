@@ -9,11 +9,17 @@ de:
     invoice_number: Re.-Nr. 
     sum_brutto: Summe (brutto)
     sum_netto: Summe (netto)
+    referenced_entity: "Referenz"
+    type_code: "Typ-Code"
+    type_codes:
+      380: "Rechnung"
+      389: "Gutschriftrechnung"
     tax_mode: Steuer-Modus
     tax_modes:
       E: "Steuerbefreit nach § 19"
       S: "Reguläre USt-Pflicht"
-      
+      AE: "Reverse Charge"
+      K: "Innergemeinschaftliche Lieferung"
   invoice_item: &invoice_item_labels
     one: Rechnungselement
     other: Rechnungselemente

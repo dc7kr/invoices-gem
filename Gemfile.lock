@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    corika_invoices (2.0)
+    corika_invoices (2.2)
       countries
       kaminari
       mongoid

@@ -1,5 +1,11 @@
 module CorikaInvoices
   module ApplicationHelper
+    include ActionView::Helpers::NumberHelper
+
+    def format_currency(val, _cur = nil)
+      number_to_currency(val, precision: 2, locale: :de)
+    end
+
     def entity_row(entity, field, type = nil)
       sym = entity.class.name.underscore.to_sym
       content_tag :div, class: 'row' do

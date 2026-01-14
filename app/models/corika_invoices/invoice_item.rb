@@ -4,7 +4,7 @@ module CorikaInvoices
 
     include Hashify
 
-    field :count,     type: Integer
+    field :count,     type: Float
     field :unit_code, type: String
     field :tax_type,  type: String
     field :tax_rate,  type: Float

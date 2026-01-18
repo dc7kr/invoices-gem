@@ -96,12 +96,17 @@ module CorikaInvoices
     end
 
     def generate_file
-      write_xml
+      outfile = CorikaInvoices::ArchiveFile.new(filename, filename, year.to_s)
+      ensure_target_dir_exists(outfile.full_path)
+
+      sepa_file = File.open(outfile.full_path, 'w')
+      sepa_file << generate_xml
+      sepa_file.close
+
+      outfile
     end
 
-    private
-
-    def write_xml
+    def generate_xml
       if direct_debits.count.zero? && credit_transfers.count.zero?
         Rails.logger.warn('No SEPA bookings - not generating empty file')
         return nil
@@ -115,16 +120,9 @@ module CorikaInvoices
         sepaxml = create_credit_transfer(credit_transfers)
       end
 
-      outfile = CorikaInvoices::ArchiveFile.new(filename, filename, year.to_s)
-      ensure_target_dir_exists(outfile.full_path)
-
-      sepa_file = File.open(outfile.full_path, 'w')
-      sepa_file << sepaxml
-      sepa_file.close
-
-      outfile
     end
 
+    private
     def create_sepa_direct_debit_order(direct_debits, requested_date = nil)
       requested_date = 5.day.from_now.to_date if requested_date.nil?
 

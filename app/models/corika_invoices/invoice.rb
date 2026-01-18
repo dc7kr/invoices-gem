@@ -146,7 +146,21 @@ module CorikaInvoices
       invoice_file
     end
 
-    def gen_sepa(sepa_writer = nil)
+    def gen_sepa_xml
+      year = invoice_date.year
+      
+      date_prefix = Time.now.strftime '%Y%m%d%H%M%S'
+
+      sepa_writer = SepaWriter.new(date_prefix, INVOICE_CONFIG)
+
+      if not gen_sepa_booking(sepa_writer)
+        return false
+      end
+
+      sepa_writer.generate_xml
+    end
+
+    def gen_sepa_file(sepa_writer = nil)
       year = invoice_date.year
 
       batch = false

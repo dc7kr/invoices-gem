@@ -59,9 +59,15 @@ module CorikaInvoices
     def archive_generated_file(generated_file, target_filename, year)
       target_dir = File.join(config.archive_dir, year.to_s)
 
-      FileUtils.mkdir target_dir unless Dir.exist? target_dir
+      FileUtils.mkdir_p target_dir unless Dir.exist? target_dir
       src_file_path = File.join(config.output_dir, generated_file)
-      dest_file_path = File.join(config.archive_dir, year.to_s, target_filename)
+      
+      if not File.exist? src_file_path
+        raise "Error generating PDF"
+      end
+
+      dest_file_path = File.join(target_dir, target_filename)
+
       FileUtils.mv src_file_path, dest_file_path
     end
   end

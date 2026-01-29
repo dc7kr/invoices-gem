@@ -4,7 +4,9 @@ module CorikaInvoices
     include Mongoid::Document
     include Hashify
 
-    field :number, type: String
+    field :number, type: String # LEGACY
+    field :number_suffix, type: String
+    field :number_format, type: String
     field :invoice_date, type: Date
     field :tax_mode, type: String
     field :typecode, type: Integer
@@ -29,7 +31,8 @@ module CorikaInvoices
       # "normal invoice" by default
       self.typecode = 380
       self.locale = 'de'
-
+     
+      # seqeuence_number + number_suffix as a default 
       max_seq = CorikaInvoices::Invoice.max(:seq_nr) 
 
       if max_seq.nil?
@@ -40,11 +43,17 @@ module CorikaInvoices
       self.seq_nr = max_seq + 1
     end
 
+    def number
+      number_suffix
+    end
+
     def full_number
-      if not number.nil? and not number.empty?
-        "#{seq_nr}-#{number}"
+      if not number_suffix.present?
+        self.number_format = "%d" unless self.number_format.present?
+        self.number_format % [ seq_nr ]
       else
-        seq_nr
+        self.number_format = "%05d-%s" unless self.number_format.present? and self.number_format.include? "-"
+        self.number_format % [ seq_nr , number_suffix ]
       end
     end
 
@@ -125,7 +134,7 @@ module CorikaInvoices
         work_pdf_file = pdf_generator.gen_pdf(self)
         # content: <uuid>.pdf
 
-        target_file_name = "#{date_prefix}_#{seq_nr}_#{number}.pdf"
+        target_file_name = "#{date_prefix}_#{full_number}.pdf"
 
         Rails.logger.debug("Work_pdf: #{work_pdf_file}")
 

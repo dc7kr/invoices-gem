@@ -2,6 +2,15 @@
   %h2
     =t("invoice.type_codes.#{invoice_hash[:typecode]}")
     =invoice_hash[:number]
+
+  .row
+    .col=t("customer.our_id")
+    .col=invoice_hash[:customer][:our_id]
+
+  .row
+    .col=t("customer.vat_id")
+    .col=invoice_hash[:customer][:vat_id]
+
   .row
     .col=t("invoice.invoice_date")
     .col=invoice_hash[:date]

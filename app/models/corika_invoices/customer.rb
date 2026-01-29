@@ -21,6 +21,7 @@ module CorikaInvoices
     field :entity_type, type: String
     field :entity_id, type: Integer
     field :our_id, type: String
+    field :vat_id, type: String
 
     def full_name
       "#{first_name} #{last_name}"
@@ -74,7 +75,9 @@ module CorikaInvoices
         company: company,
         mandate_id: mandate_id,
         sig_date: sig_date,
-        direct_debit: direct_debit
+        direct_debit: direct_debit,
+        our_id: our_id,
+        vat_id: vat_id
       }
 
       hash['dd'] = direct_debit?

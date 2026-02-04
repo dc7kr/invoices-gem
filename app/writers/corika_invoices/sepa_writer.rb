@@ -83,7 +83,7 @@ module CorikaInvoices
     def filename
       if direct_debits.count.positive?
         "#{date_prefix}_sepa_dd.xml"
-      elsif credit_transfers.positive?
+      elsif credit_transfers.count.positive?
         "#{date_prefix}_sepa_ct.xml"
       end
     end

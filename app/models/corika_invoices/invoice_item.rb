@@ -11,6 +11,7 @@ module CorikaInvoices
     field :basis,     type: Float
     field :label,     type: String
     field :net_price, type: Float
+    field :reference_price, type: Float
 
     validates_presence_of :count, :unit_code, :tax_type, :tax_rate, :basis, :total, :label
 
@@ -20,7 +21,7 @@ module CorikaInvoices
       create(count, net_price, label, unit_code, tax_rate, tax_type)
     end
 
-    def self.create(count, basis, label, unit_code = 'C62', tax_rate = INVOICE_CONFIG.taxrate, tax_type = 'S')
+    def self.create(count, basis, label, unit_code = 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_type: 'S')
       i = InvoiceItem.new
 
       i.basis = basis
@@ -67,7 +68,7 @@ module CorikaInvoices
     end
 
     def to_hash
-      {
+      hash = {
         count: count,
         unit_code: unit_code,
         tax_type: tax_type,
@@ -77,6 +78,12 @@ module CorikaInvoices
         net_amount: net_price,
         total: total
       }
+
+      if not reference_price.nil?
+        hash[:reference_price] = reference_price
+      end
+
+      hash
     end
   end
 end

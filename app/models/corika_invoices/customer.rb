@@ -84,5 +84,12 @@ module CorikaInvoices
 
       hash
     end
+
+    def overwrite_with(contact_hash)
+      contact_hash.each do |k, v|
+        public_send("#{k}=", v) if respond_to? "#{k}="
+      end
+    end
+
   end
 end

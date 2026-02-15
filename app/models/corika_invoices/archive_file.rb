@@ -44,10 +44,18 @@ module CorikaInvoices
     end
 
     def relative_filename
+      if not orig_filename.present?
+        return nil
+      end
+
       File.join(archive_folder, orig_filename)
     end
 
     def full_path
+      if not orig_filename.present?
+        return nil
+      end
+
       File.join(full_dir, orig_filename)
     end
 

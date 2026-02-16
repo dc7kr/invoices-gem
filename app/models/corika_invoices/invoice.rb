@@ -31,9 +31,9 @@ module CorikaInvoices
       # "normal invoice" by default
       self.typecode = 380
       self.locale = 'de'
-     
-      # seqeuence_number + number_suffix as a default 
-      max_seq = CorikaInvoices::Invoice.max(:seq_nr) 
+
+      # seqeuence_number + number_suffix as a default
+      max_seq = CorikaInvoices::Invoice.max(:seq_nr)
 
       if max_seq.nil?
         Rails.logger.warn("invoice max seq = 0")
@@ -57,21 +57,21 @@ module CorikaInvoices
       end
     end
 
-    def consider_item(count, price, label, type_code="C62", vat=INVOICE_CONFIG.taxrate)
+    def consider_item(count, price, label, type_code:"C62", vat:INVOICE_CONFIG.taxrate)
       return nil if count.nil? || count.zero?
 
       add_item(count, price, label)
     end
 
-    def consider_item_gross(count, price, label, type_code="C62", vat=INVOICE_CONFIG.taxrate)
+    def consider_item_gross(count, price, label, type_code:"C62", vat:INVOICE_CONFIG.taxrate)
       return nil if count.nil? || count.zero?
 
-      item = CorikaInvoices::InvoiceItem.create_gross(count, price, label, type_code, vat)
+      item = CorikaInvoices::InvoiceItem.create_gross(count, price, label, unit_code: type_code, tax_rate: vat)
       invoice_items << item
     end
 
-    def add_item(count, price, label, unit_code = 'C62', _p_tax_rate = INVOICE_CONFIG.taxrate, p_tax_mode = tax_mode)
-      item = InvoiceItem.create(count, price, label, unit_code, INVOICE_CONFIG.taxrate, p_tax_mode)
+    def add_item(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_mode: tax_mode)
+      item = InvoiceItem.create(count, price, label, unit_code: unit_code, tax_rate: tax_rate, tax_type: tax_mode)
 
       invoice_items << item
 
@@ -91,7 +91,7 @@ module CorikaInvoices
       tax = 0.0
 
       invoice_items.each do |item|
-        tax += item.tax_total
+        tax += item.tax
       end
 
       tax
@@ -104,6 +104,10 @@ module CorikaInvoices
       end
 
       sum
+    end
+
+    def total
+      sum+tax_sum
     end
 
     def items
@@ -157,7 +161,7 @@ module CorikaInvoices
 
     def gen_sepa_xml
       year = invoice_date.year
-      
+
       date_prefix = Time.now.strftime '%Y%m%d%H%M%S'
 
       sepa_writer = SepaWriter.new(date_prefix, INVOICE_CONFIG)

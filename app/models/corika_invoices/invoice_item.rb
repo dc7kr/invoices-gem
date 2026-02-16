@@ -13,15 +13,17 @@ module CorikaInvoices
     field :net_price, type: Float
     field :reference_price, type: Float
 
+    embeds_many :item_taxes, store_as: 'taxes'
+
     validates_presence_of :count, :unit_code, :tax_type, :tax_rate, :basis, :total, :label
 
-    def self.create_gross(count, gross_price, label, unit_code = 'C62', tax_rate = INVOICE_CONFIG.taxrate, tax_type = 'S')
+    def self.create_gross(count, gross_price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_type: 'S')
       tax_factor = tax_rate / 100.0
       net_price = gross_price / (1 + tax_factor)
-      create(count, net_price, label, unit_code, tax_rate, tax_type)
+      create(count, net_price, label, unit_code: unit_code, tax_rate: tax_rate, tax_type: tax_type)
     end
 
-    def self.create(count, basis, label, unit_code = 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_type: 'S')
+    def self.create(count, basis, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_type: 'S')
       i = InvoiceItem.new
 
       i.basis = basis
@@ -38,6 +40,10 @@ module CorikaInvoices
                      tax_rate
                    end
 
+      tax = ItemTax.new
+      tax.tax_basis = basis
+      tax.tax_rate = tax_rate
+      i.item_taxes << tax
       i.unit_code = unit_code
 
       i
@@ -68,11 +74,18 @@ module CorikaInvoices
     end
 
     def to_hash
+      tx_array = []
+
+      item_taxes.each do |tx|
+        tx_array.append(tx.to_hash)
+      end
+
       hash = {
         count: count,
         unit_code: unit_code,
         tax_type: tax_type,
         tax_rate: tax_rate,
+        taxes: tx_array,
         basis: basis,
         label: label,
         net_amount: net_price,

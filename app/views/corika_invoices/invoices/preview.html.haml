@@ -1,4 +1,4 @@
-= render layout: 'layouts/modal', locals: { title: t("invoice.preview") } do 
+= render layout: 'layouts/modal', locals: { title: t("invoice.preview") } do
   %h2
     =t("invoice.type_codes.#{invoice_hash[:typecode]}")
     =invoice_hash[:number]
@@ -42,7 +42,13 @@
         %tr
           %td=it[:count]
           %td=it[:label]
-          %td #{it[:tax_rate]} %
+          %td
+            - if it.item_taxes.length > 1
+              - it.item_taxes.each do |tx|
+                #{tx.tax_rate*1.0/100 * tx_tax_basis} (#{tx.tax_rate} %)
+                %br
+            - else
+              #{it[:tax_rate]} %
           %td.text-end=format_currency it[:basis]
           %td.text-end=format_currency it[:total]
     %tfoot
@@ -61,7 +67,7 @@
             %td.fw-bold #{tax[:rate]} %
             - if invoice_hash[:sum][:taxes].size > 1
               %td.text-end.fw-bold=format_currency tax[:basis]
-            - else 
+            - else
               %td &nbsp;
             %td.text-end.fw-bold=format_currency tax[:sum]
       %tr

@@ -70,8 +70,8 @@ module CorikaInvoices
       invoice_items << item
     end
 
-    def add_item(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_mode: tax_mode)
-      item = InvoiceItem.create(count, price, label, unit_code: unit_code, tax_rate: tax_rate, tax_type: tax_mode)
+    def add_item(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_type: "S" )
+      item = InvoiceItem.create(count, price, label, unit_code: unit_code, tax_rate: tax_rate, tax_type: tax_type)
 
       invoice_items << item
 

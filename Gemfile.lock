@@ -4,8 +4,10 @@ PATH
     corika_invoices (2.2)
       countries
       kaminari
+      kaminari-mongoid
       mongoid
       rails (>= 5.0)
+      sepa_king
 
 GEM
   remote: https://rubygems.org/
@@ -103,6 +105,7 @@ GEM
       activesupport (>= 6.1)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
+    iban-tools (1.2.1)
     io-console (0.8.1)
     irb (1.15.3)
       pp (>= 0.6.0)
@@ -121,6 +124,9 @@ GEM
       activerecord
       kaminari-core (= 1.2.2)
     kaminari-core (1.2.2)
+    kaminari-mongoid (1.0.2)
+      kaminari-core (~> 1.0)
+      mongoid
     language_server-protocol (3.17.0.3)
     leshill-will_paginate (2.3.11)
     lint_roller (1.1.0)
@@ -248,6 +254,10 @@ GEM
       rubocop-rails (>= 2.30)
     ruby-progressbar (1.13.0)
     securerandom (0.4.1)
+    sepa_king (0.14.0)
+      activemodel (>= 4.2)
+      iban-tools
+      nokogiri
     sqlite3 (2.5.0)
       mini_portile2 (~> 2.8.0)
     stringio (3.1.8)

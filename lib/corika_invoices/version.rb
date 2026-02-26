@@ -1,3 +1,3 @@
 module CorikaInvoices
-  VERSION = '2.2'.freeze
+  VERSION = '2.5'.freeze
 end

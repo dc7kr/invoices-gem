@@ -39,14 +39,25 @@ module CorikaInvoices
                    else
                      tax_rate
                    end
+      if tax_type != 'E'
+        tax = ItemTax.new
+        tax.tax_basis = basis
+        tax.tax_rate = tax_rate
+        i.item_taxes << tax
+      end
 
-      tax = ItemTax.new
-      tax.tax_basis = basis
-      tax.tax_rate = tax_rate
-      i.item_taxes << tax
       i.unit_code = unit_code
 
       i
+    end
+
+    def add_split_tax(rate, basis, label = nil )
+      tax = ItemTax.new
+      tax.tax_basis = basis
+      tax.tax_rate = rate
+      tax.label = label
+
+      item_taxes << tax
     end
 
     def tax
@@ -63,6 +74,20 @@ module CorikaInvoices
       else
         basis * count
       end
+    end
+
+    def tax_total
+      if basis.nil?
+        return 0
+      end
+
+      sum = 0
+      item_taxes.each do |tx|
+        sum += tx.tax_amount*count
+      end
+      Rails.logger.debug("tax_total: #{sum}")
+
+      sum
     end
 
     def total
@@ -89,6 +114,7 @@ module CorikaInvoices
         basis: basis,
         label: label,
         net_amount: net_price,
+        tax_total: tax_total,
         total: total
       }
 

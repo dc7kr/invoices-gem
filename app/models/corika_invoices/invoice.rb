@@ -21,6 +21,9 @@ module CorikaInvoices
     field :locale, type: String
     field :template, type: String
     field :template_subdir, type: String
+    field :paid, type: Boolean
+    field :transaction_code, type: String
+    field :payment_method, type: String
 
     embeds_one :customer
     embeds_one :contact
@@ -68,6 +71,8 @@ module CorikaInvoices
 
       item = CorikaInvoices::InvoiceItem.create_gross(count, price, label, unit_code: type_code, tax_rate: vat)
       invoice_items << item
+
+      item
     end
 
     def add_item(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_type: "S" )
@@ -91,7 +96,9 @@ module CorikaInvoices
       tax = 0.0
 
       invoice_items.each do |item|
-        tax += item.tax
+        item.item_taxes.each do |i_tax|
+          tax += (i_tax.tax_rate/100.0)*i_tax.tax_basis
+        end
       end
 
       tax
@@ -286,21 +293,29 @@ module CorikaInvoices
       taxes = {}
 
       invoice_items.each do |item|
-        grand_total += item.total + item.tax
+        grand_total += item.total
         line_total += item.total
 
-        tax += item.tax
+        item.item_taxes.each do |tx|
+          if taxes[tx.tax_rate].nil?
+            taxes[tx.tax_rate] = {
+              rate: tx.tax_rate,
+              sum: 0,
+              basis: 0
+            }
+          end
 
-        if taxes[item.tax_rate].nil?
-          taxes[item.tax_rate] = {
-            rate: item.tax_rate,
-            sum: 0,
-            basis: 0
-          }
+          sub_tax = tx.tax_basis*(tx.tax_rate/100.0)*item.count
+          grand_total += sub_tax
+
+          taxes[tx.tax_rate][:sum] += sub_tax
+          taxes[tx.tax_rate][:basis] += tx.tax_basis
         end
 
-        taxes[item.tax_rate][:sum] += item.tax
-        taxes[item.tax_rate][:basis] += item.total
+        tax_basis += item.total
+
+        #tax += item.tax
+
         tax_basis += item.total
       end
 

@@ -1,7 +1,6 @@
 module CorikaInvoices
   #  NOTE: inherits from CorikaInvoices::ApplicationController
   class CustomersController < ApplicationController
-
     def index
       @invoices = Customer.all
     end

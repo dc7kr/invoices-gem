@@ -10,15 +10,15 @@ module CorikaInvoices
 
       self.date_prefix = if date_prefix.nil?
                            Time.now.strftime '%Y%m%d%H%M%S'
-                         else
+      else
                            date_prefix
-                         end
+      end
 
       self.year = if year.nil?
                     Time.now.year
-                  else
+      else
                     year
-                  end
+      end
 
       self.settings = settings
       self.direct_debits = []
@@ -119,7 +119,6 @@ module CorikaInvoices
       elsif credit_transfers.count.positive?
         sepaxml = create_credit_transfer(credit_transfers)
       end
-
     end
 
     private

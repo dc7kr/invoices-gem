@@ -25,7 +25,7 @@ module CorikaInvoices
         return false if var.nil?
       end
 
-      return true
+      true
     end
   end
 end

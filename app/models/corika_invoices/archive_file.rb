@@ -34,9 +34,9 @@ module CorikaInvoices
 
       self.archive_folder = if archive_folder.nil?
                               Time.now.year.to_s
-                            else
+      else
                               archive_folder.to_s
-                            end
+      end
     end
 
     def full_dir

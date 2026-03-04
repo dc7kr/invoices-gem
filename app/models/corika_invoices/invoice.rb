@@ -56,17 +56,17 @@ module CorikaInvoices
         self.number_format % [ seq_nr ]
       else
         self.number_format = "%05d-%s" unless self.number_format.present? and self.number_format.include? "-"
-        self.number_format % [ seq_nr , number_suffix ]
+        self.number_format % [ seq_nr, number_suffix ]
       end
     end
 
-    def consider_item(count, price, label, type_code:"C62", vat:INVOICE_CONFIG.taxrate)
+    def consider_item(count, price, label, type_code: "C62", vat: INVOICE_CONFIG.taxrate)
       return nil if count.nil? || count.zero?
 
       add_item(count, price, label)
     end
 
-    def consider_item_gross(count, price, label, type_code:"C62", vat:INVOICE_CONFIG.taxrate)
+    def consider_item_gross(count, price, label, type_code: "C62", vat: INVOICE_CONFIG.taxrate)
       return nil if count.nil? || count.zero?
 
       item = CorikaInvoices::InvoiceItem.create_gross(count, price, label, unit_code: type_code, tax_rate: vat)
@@ -75,7 +75,7 @@ module CorikaInvoices
       item
     end
 
-    def add_item(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_type: "S" )
+    def add_item(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_type: "S")
       item = InvoiceItem.create(count, price, label, unit_code: unit_code, tax_rate: tax_rate, tax_type: tax_type)
 
       invoice_items << item
@@ -127,15 +127,15 @@ module CorikaInvoices
       invoice_items << item
     end
 
-    def gen_pdf(test_mode=false)
+    def gen_pdf(test_mode = false)
       invoice_file = nil
       self.invoice_date = Time.now.to_date if invoice_date.nil?
 
       year = if booking_year.nil?
                invoice_date.year
-             else
+      else
                booking_year
-             end
+      end
 
       if pdf_filename.nil?
 

@@ -7,8 +7,8 @@ require 'corika_invoices/version'
 Gem::Specification.new do |s|
   s.name        = 'corika_invoices'
   s.version     = CorikaInvoices::VERSION
-  s.authors     = ['Karsten Richter']
-  s.email       = ['kr@corika.com']
+  s.authors     = [ 'Karsten Richter' ]
+  s.email       = [ 'kr@corika.com' ]
   s.homepage    = 'https://github.com/dc7kr/invoices-gem'
   s.summary     = 'An invoice generation and archive tool using mongo DB for persistence'
   s.description = 'An invoice generation and archive tool using mongo DB for persistence'

@@ -57,9 +57,9 @@ module CorikaInvoices
     def translated_salutation(customer)
       gender = if customer.anrede.zero?
                  'M'
-               else
+      else
                  'F'
-               end
+      end
 
       t("common.salutations.#{gender}", name: customer.name)
     end

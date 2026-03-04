@@ -36,9 +36,9 @@ module CorikaInvoices
 
       i.tax_rate = if i.tax_type == 'E'
                      0
-                   else
+      else
                      tax_rate
-                   end
+      end
       if tax_type != 'E'
         tax = ItemTax.new
         tax.tax_basis = basis
@@ -51,7 +51,7 @@ module CorikaInvoices
       i
     end
 
-    def add_split_tax(rate, basis, label = nil )
+    def add_split_tax(rate, basis, label = nil)
       tax = ItemTax.new
       tax.tax_basis = basis
       tax.tax_rate = rate

@@ -23,7 +23,7 @@ module CorikaInvoices
     field :our_id, type: String
     field :vat_id, type: String
 
-    validates_presence_of([:iban,:bic,:account_owner,:mandate_id,:sig_date], if: :direct_debit )
+    validates_presence_of([ :iban, :bic, :account_owner, :mandate_id, :sig_date ], if: :direct_debit)
 
 
     def full_name

@@ -1,8 +1,8 @@
 module CorikaInvoices
   class Config
-    attr_accessor :input_dir, :output_dir, :tool_dir, :archive_dir, 
+    attr_accessor :input_dir, :output_dir, :tool_dir, :archive_dir,
                   :payee, :message_prefix, :taxrate, :taxrate_reduced,
-                  :tex_bin, :tex_dir, :fonts_dir, :custom_dir, :default_tax_mode
+                  :tex_bin, :tex_dir, :fonts_dir, :custom_dir, :default_tax_mode, :invoice_out_bcc
 
     def initialize(hash)
       throw :invoice_config_data_nil if hash.nil?
@@ -17,7 +17,7 @@ module CorikaInvoices
     end
 
     def valid?
-      [ input_dir, output_dir, tool_dir, archive_dir, custom_dir, fonts_dir, tex_dir ].each do |dir| 
+      [ input_dir, output_dir, tool_dir, archive_dir, custom_dir, fonts_dir, tex_dir ].each do |dir|
         return false if dir.nil?  or not File.directory?(dir)
       end
 

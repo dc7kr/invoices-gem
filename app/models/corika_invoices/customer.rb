@@ -23,20 +23,15 @@ module CorikaInvoices
     field :our_id, type: String
     field :vat_id, type: String
 
+    validates_presence_of([:iban,:bic,:account_owner,:mandate_id,:sig_date], if: :direct_debit )
+
+
     def full_name
       "#{first_name} #{last_name}"
     end
 
     def direct_debit?
       direct_debit and !(iban.blank? or bic.blank?)
-    end
-
-    def account_owner
-      if company.nil? || company.empty?
-        full_name
-      else
-        company
-      end
     end
 
     def entity=(entity)
@@ -90,6 +85,5 @@ module CorikaInvoices
         public_send("#{k}=", v) if respond_to? "#{k}="
       end
     end
-
   end
 end

@@ -98,6 +98,13 @@ module CorikaInvoices
       end
     end
 
+    def unit_price
+      gross / count
+    end
+    def gross
+      total+tax_total
+    end
+
     def to_hash
       tx_array = []
 

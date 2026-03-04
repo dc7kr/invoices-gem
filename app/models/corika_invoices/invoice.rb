@@ -97,9 +97,11 @@ module CorikaInvoices
 
       invoice_items.each do |item|
         item.item_taxes.each do |i_tax|
-          tax += (i_tax.tax_rate/100.0)*i_tax.tax_basis
+          tax += (i_tax.tax_rate/100.0)*i_tax.tax_basis*item.count
+          Rails.logger.info("Tax: #{tax}: #{item.label}")
         end
       end
+
 
       tax
     end
@@ -164,6 +166,10 @@ module CorikaInvoices
       end
 
       invoice_file
+    end
+
+    def get_invoice_file
+      CorikaInvoices::ArchiveFile.new(pdf_filename, pdf_filename, booking_year)
     end
 
     def gen_sepa_xml
@@ -234,7 +240,7 @@ module CorikaInvoices
 
     def gen_sepa_booking(sepa_writer)
       if customer.direct_debit?
-        sepa_writer.add_direct_debit(customer, sum, number, 'RCUR')
+        sepa_writer.add_direct_debit(customer, total, number, 'RCUR')
         true
       else
         false
@@ -256,6 +262,9 @@ module CorikaInvoices
           tax_mode: tax_mode,
           typecode: typecode,
           template: template,
+          paid: paid,
+          payment_method: payment_method,
+          transaction_code: transaction_code
         }
       }
 
@@ -307,14 +316,11 @@ module CorikaInvoices
 
           sub_tax = tx.tax_basis*(tx.tax_rate/100.0)*item.count
           grand_total += sub_tax
+          tax += sub_tax
 
           taxes[tx.tax_rate][:sum] += sub_tax
-          taxes[tx.tax_rate][:basis] += tx.tax_basis
+          taxes[tx.tax_rate][:basis] += tx.tax_basis*item.count
         end
-
-        tax_basis += item.total
-
-        #tax += item.tax
 
         tax_basis += item.total
       end

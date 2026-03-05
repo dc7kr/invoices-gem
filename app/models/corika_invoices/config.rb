@@ -17,11 +17,11 @@ module CorikaInvoices
     end
 
     def valid?
-      [ input_dir, output_dir, tool_dir, archive_dir, custom_dir, fonts_dir, tex_dir ].each do |dir|
-        return false if dir.nil?  or not File.directory?(dir)
+      [input_dir, output_dir, tool_dir, archive_dir, custom_dir, fonts_dir, tex_dir].each do |dir|
+        return false if dir.nil? || !File.directory?(dir)
       end
 
-      [ payee, tex_bin, taxrate, taxrate_reduced, default_tax_mode ].each do |var|
+      [payee, tex_bin, taxrate, taxrate_reduced, default_tax_mode].each do |var|
         return false if var.nil?
       end
 

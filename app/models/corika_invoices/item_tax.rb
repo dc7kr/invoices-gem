@@ -7,13 +7,11 @@ module CorikaInvoices
     field :label, type: String
 
     def to_hash
-        retval = {
-          tax_rate: tax_rate,
-          tax_basis: tax_basis,
-          label: label
-        }
-
-        retval
+      {
+        tax_rate: tax_rate,
+        tax_basis: tax_basis,
+        label: label
+      }
     end
 
     def self.create(rate, basis, label = nil)
@@ -26,7 +24,7 @@ module CorikaInvoices
     end
 
     def tax_amount
-      (tax_rate/100.0) * tax_basis
+      (tax_rate / 100.0) * tax_basis
     end
   end
 end

@@ -36,9 +36,9 @@ module CorikaInvoices
 
       i.tax_rate = if i.tax_type == 'E'
                      0
-      else
+                   else
                      tax_rate
-      end
+                   end
       if tax_type != 'E'
         tax = ItemTax.new
         tax.tax_basis = basis
@@ -77,13 +77,11 @@ module CorikaInvoices
     end
 
     def tax_total
-      if basis.nil?
-        return 0
-      end
+      return 0 if basis.nil?
 
       sum = 0
       item_taxes.each do |tx|
-        sum += tx.tax_amount*count
+        sum += tx.tax_amount * count
       end
       Rails.logger.debug("tax_total: #{sum}")
 
@@ -101,8 +99,9 @@ module CorikaInvoices
     def unit_price
       gross / count
     end
+
     def gross
-      total+tax_total
+      total + tax_total
     end
 
     def to_hash
@@ -125,9 +124,7 @@ module CorikaInvoices
         total: total
       }
 
-      if not reference_price.nil?
-        hash[:reference_price] = reference_price
-      end
+      hash[:reference_price] = reference_price unless reference_price.nil?
 
       hash
     end

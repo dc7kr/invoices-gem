@@ -10,15 +10,15 @@ module CorikaInvoices
 
       self.date_prefix = if date_prefix.nil?
                            Time.now.strftime '%Y%m%d%H%M%S'
-      else
+                         else
                            date_prefix
-      end
+                         end
 
       self.year = if year.nil?
                     Time.now.year
-      else
+                  else
                     year
-      end
+                  end
 
       self.settings = settings
       self.direct_debits = []
@@ -112,16 +112,15 @@ module CorikaInvoices
         return nil
       end
 
-      sepaxml = nil
-
       if direct_debits.count.positive?
-        sepaxml = create_sepa_direct_debit_order(direct_debits)
+        create_sepa_direct_debit_order(direct_debits)
       elsif credit_transfers.count.positive?
-        sepaxml = create_credit_transfer(credit_transfers)
+        create_credit_transfer(credit_transfers)
       end
     end
 
     private
+
     def create_sepa_direct_debit_order(direct_debits, requested_date = nil)
       requested_date = 5.day.from_now.to_date if requested_date.nil?
 

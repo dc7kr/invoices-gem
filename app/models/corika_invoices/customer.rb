@@ -23,8 +23,7 @@ module CorikaInvoices
     field :our_id, type: String
     field :vat_id, type: String
 
-    validates_presence_of([ :iban, :bic, :account_owner, :mandate_id, :sig_date ], if: :direct_debit)
-
+    validates_presence_of(%i[iban bic account_owner mandate_id sig_date], if: :direct_debit)
 
     def full_name
       "#{first_name} #{last_name}"
@@ -57,7 +56,7 @@ module CorikaInvoices
       hash = {
         id: customer_id,
         salutation: I18n.t("common.salutations.#{salutation}"),
-        greeting:  salutation_line,
+        greeting: salutation_line,
         name: "#{first_name} #{last_name}",
         street: street,
         zip: zip,

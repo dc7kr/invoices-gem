@@ -32,9 +32,9 @@ module CorikaInvoices
 
       template_dir = if !template_subdir.nil?
                        File.join(config.custom_dir, template_subdir)
-      else
+                     else
                        config.custom_dir
-      end
+                     end
 
       Rails.logger.debug("Template dir: #{template_dir}")
 
@@ -62,9 +62,7 @@ module CorikaInvoices
       FileUtils.mkdir_p target_dir unless Dir.exist? target_dir
       src_file_path = File.join(config.output_dir, generated_file)
 
-      if not File.exist? src_file_path
-        raise "Error generating PDF"
-      end
+      raise 'Error generating PDF' unless File.exist? src_file_path
 
       dest_file_path = File.join(target_dir, target_filename)
 

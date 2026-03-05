@@ -39,7 +39,7 @@ module CorikaInvoices
       max_seq = CorikaInvoices::Invoice.max(:seq_nr)
 
       if max_seq.nil?
-        Rails.logger.warn("invoice max seq = 0")
+        Rails.logger.warn('invoice max seq = 0')
         max_seq = 0
       end
 
@@ -97,11 +97,10 @@ module CorikaInvoices
 
       invoice_items.each do |item|
         item.item_taxes.each do |i_tax|
-          tax += (i_tax.tax_rate/100.0)*i_tax.tax_basis*item.count
+          tax += (i_tax.tax_rate / 100.0) * i_tax.tax_basis * item.count
           Rails.logger.info("Tax: #{tax}: #{item.label}")
         end
       end
-
 
       tax
     end
@@ -116,7 +115,7 @@ module CorikaInvoices
     end
 
     def total
-      sum+tax_sum
+      sum + tax_sum
     end
 
     def items
@@ -133,9 +132,9 @@ module CorikaInvoices
 
       year = if booking_year.nil?
                invoice_date.year
-      else
+             else
                booking_year
-      end
+             end
 
       if pdf_filename.nil?
 
@@ -173,15 +172,13 @@ module CorikaInvoices
     end
 
     def gen_sepa_xml
-      year = invoice_date.year
+      invoice_date.year
 
       date_prefix = Time.now.strftime '%Y%m%d%H%M%S'
 
       sepa_writer = SepaWriter.new(date_prefix, INVOICE_CONFIG)
 
-      if not gen_sepa_booking(sepa_writer)
-        return false
-      end
+      return false unless gen_sepa_booking(sepa_writer)
 
       sepa_writer.generate_xml
     end
@@ -270,9 +267,7 @@ module CorikaInvoices
 
       h_invoice = retval[:invoice]
 
-      if not template_subdir.nil? and not template_subdir.empty?
-        h_invoice[:template_subdir] =  template_subdir
-      end
+      h_invoice[:template_subdir] = template_subdir if !template_subdir.nil? && !template_subdir.empty?
 
       h_invoice[:exemption_reason] = I18n.t('invoice.exemption_reason') if tax_mode == 'E'
 
@@ -314,12 +309,12 @@ module CorikaInvoices
             }
           end
 
-          sub_tax = tx.tax_basis*(tx.tax_rate/100.0)*item.count
+          sub_tax = tx.tax_basis * (tx.tax_rate / 100.0) * item.count
           grand_total += sub_tax
           tax += sub_tax
 
           taxes[tx.tax_rate][:sum] += sub_tax
-          taxes[tx.tax_rate][:basis] += tx.tax_basis*item.count
+          taxes[tx.tax_rate][:basis] += tx.tax_basis * item.count
         end
 
         tax_basis += item.total

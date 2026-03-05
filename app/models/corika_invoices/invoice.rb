@@ -51,31 +51,31 @@ module CorikaInvoices
     end
 
     def full_number
-      if not number_suffix.present?
-        self.number_format = "%d" unless self.number_format.present?
-        self.number_format % [ seq_nr ]
+      if !number_suffix.present?
+        self.number_format = '%d' unless number_format.present?
+        format(number_format, seq_nr)
       else
-        self.number_format = "%05d-%s" unless self.number_format.present? and self.number_format.include? "-"
-        self.number_format % [ seq_nr, number_suffix ]
+        self.number_format = '%05d-%s' unless number_format.present? && number_format.include?('-')
+        format(number_format, seq_nr, number_suffix)
       end
     end
 
-    def consider_item(count, price, label, type_code: "C62", vat: INVOICE_CONFIG.taxrate)
+    def consider_item(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate)
       return nil if count.nil? || count.zero?
 
-      add_item(count, price, label)
+      add_item(count, price, label, tax_rate: tax_rate, unit_code: unit_code)
     end
 
-    def consider_item_gross(count, price, label, type_code: "C62", vat: INVOICE_CONFIG.taxrate)
+    def consider_item_gross(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate)
       return nil if count.nil? || count.zero?
 
-      item = CorikaInvoices::InvoiceItem.create_gross(count, price, label, unit_code: type_code, tax_rate: vat)
+      item = CorikaInvoices::InvoiceItem.create_gross(count, price, label, unit_code: unit_code, tax_rate: tax_rate)
       invoice_items << item
 
       item
     end
 
-    def add_item(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_type: "S")
+    def add_item(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_type: 'S')
       item = InvoiceItem.create(count, price, label, unit_code: unit_code, tax_rate: tax_rate, tax_type: tax_type)
 
       invoice_items << item

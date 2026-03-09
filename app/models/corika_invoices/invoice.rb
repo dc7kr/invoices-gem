@@ -115,7 +115,7 @@ module CorikaInvoices
     end
 
     def total
-      sum + tax_sum
+      net_sum + tax_sum
     end
 
     def items
@@ -246,6 +246,10 @@ module CorikaInvoices
 
     def items?
       invoice_items.length.positive?
+    end
+
+    def final?
+      pdf_filename.present?
     end
 
     def to_hash

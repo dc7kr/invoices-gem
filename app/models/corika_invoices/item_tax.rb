@@ -6,6 +6,8 @@ module CorikaInvoices
     field :tax_basis, type: Float
     field :label, type: String
 
+    embedded_in :invoice_item
+
     def to_hash
       {
         tax_rate: tax_rate,

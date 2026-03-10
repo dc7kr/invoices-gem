@@ -17,6 +17,8 @@ module CorikaInvoices
 
     validates_presence_of :count, :unit_code, :tax_type, :tax_rate, :basis, :total, :label
 
+    embedded_in :invoice
+
     def self.create_gross(count, gross_price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_type: 'S')
       tax_factor = tax_rate / 100.0
       net_price = gross_price / (1 + tax_factor)

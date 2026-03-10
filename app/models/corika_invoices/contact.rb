@@ -20,6 +20,7 @@ module CorikaInvoices
     field :company, type: String
     field :company_short, type: String
     field :vat_id, type: String
+    field :legal_entity_id, type: String
     field :tax_reg, type: String
     field :creditor_id, type: String
     field :country_id, type: String
@@ -36,6 +37,7 @@ module CorikaInvoices
       self.company_short = INVOICE_CONFIG.payee.company_short
       self.vat_id = INVOICE_CONFIG.payee.vat_id
       self.tax_reg = INVOICE_CONFIG.payee.tax_reg
+      self.legal_entity_id = INVOICE_CONFIG.payee.legal_entity_id
       self.creditor_id = INVOICE_CONFIG.payee.creditor_id
 
       # only use default IBAN/BIC/Bank if it is not overridden by contact hash
@@ -71,6 +73,7 @@ module CorikaInvoices
         company_short: company_short,
         vat_id: vat_id,
         tax_reg: tax_reg,
+        legal_entity_id: legal_entity_id,
         creditor_id: creditor_id
       }
     end

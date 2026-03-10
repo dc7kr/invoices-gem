@@ -11,11 +11,11 @@ module CorikaInvoices
     end
 
     def iban
-      customer.iban
+      customer.iban.gsub(/ /,"")
     end
 
     def bic
-      customer.bic
+      customer.bic.gsub(/ /,"")
     end
 
     def mandate_id

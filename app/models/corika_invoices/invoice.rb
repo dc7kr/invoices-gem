@@ -178,6 +178,14 @@ module CorikaInvoices
 
       sepa_writer = SepaWriter.new(date_prefix, INVOICE_CONFIG)
 
+      if contact.iban.present?
+        sepa_writer.iban = contact.iban.gsub(/ /, '')
+      end
+
+      if contact.bic.present?
+        sepa_writer.bic = contact.bic
+      end
+
       return false unless gen_sepa_booking(sepa_writer)
 
       sepa_writer.generate_xml

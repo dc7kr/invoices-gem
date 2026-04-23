@@ -60,16 +60,16 @@ module CorikaInvoices
       end
     end
 
-    def consider_item(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate)
+    def consider_item(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_type: "S")
       return nil if count.nil? || count.zero?
 
-      add_item(count, price, label, tax_rate: tax_rate, unit_code: unit_code)
+      add_item(count, price, label, tax_rate: tax_rate, unit_code: unit_code, tax_type: tax_type)
     end
 
-    def consider_item_gross(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate)
+    def consider_item_gross(count, price, label, unit_code: 'C62', tax_rate: INVOICE_CONFIG.taxrate, tax_type: 'S')
       return nil if count.nil? || count.zero?
 
-      item = CorikaInvoices::InvoiceItem.create_gross(count, price, label, unit_code: unit_code, tax_rate: tax_rate)
+      item = CorikaInvoices::InvoiceItem.create_gross(count, price, label, unit_code: unit_code, tax_rate: tax_rate, tax_type: tax_type)
       invoice_items << item
 
       item
@@ -340,6 +340,15 @@ module CorikaInvoices
         tax_basis: tax_basis,
         taxes: taxes.values
       }
+
+      if tax_mode == "E"
+        h_invoice[:sum][:taxes] = []
+        h_invoice[:sum][:taxes] << {
+          rate: 0,
+          sum: 0,
+          basis: line_total,
+        }
+      end
 
       retval
     end

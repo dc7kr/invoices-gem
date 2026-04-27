@@ -17,6 +17,7 @@ module CorikaInvoices
     field :booking_year, type: Integer
     field :reference_id, type: String
     field :reference_type, type: String
+    field :reference_date, type: Date
     field :exemption_reason, type: String
     field :locale, type: String
     field :template, type: String
@@ -29,11 +30,25 @@ module CorikaInvoices
     embeds_one :contact
     embeds_many :invoice_items, store_as: 'items'
 
-    def initialize
-      super
-      # "normal invoice" by default
-      self.typecode = 380
-      self.locale = 'de'
+    def initialize(attrs = nil, &block)
+      super(attrs, &block)
+
+      if not attrs.present?
+        # "normal invoice" by default
+        self.typecode = 380
+        self.locale = 'de'
+        new_seq_nr
+      end
+    end
+
+    def clone
+      inv = super
+      inv.new_seq_nr
+
+      inv
+    end
+
+    def new_seq_nr
 
       # seqeuence_number + number_suffix as a default
       max_seq = CorikaInvoices::Invoice.max(:seq_nr)
@@ -288,6 +303,10 @@ module CorikaInvoices
         h_invoice[:reference_type] = reference_type
       end
 
+      unless reference_date.nil?
+          h_invoice[:reference_date] =  reference_date.to_date.iso8601
+      end
+
       h_contact = contact.to_hash
 
       h_invoice[:me] = h_contact
@@ -357,6 +376,21 @@ module CorikaInvoices
       invoice_hash = to_hash
 
       CorikaInvoices::YamlCleaningVisitor.clean(invoice_hash)
+    end
+
+    def storno
+      storno_invoice = clone
+      storno_invoice.typecode = 457 # Storno
+      storno_invoice.template = locale == "de" ? "storno" : "storno.#{locale}"
+      storno_invoice.invoice_date = Time.now.to_date
+      storno_invoice.invoice_items.each do |it|
+        it.storno
+      end
+      storno_invoice.reference_id = full_number
+      storno_invoice.reference_date = invoice_date
+
+      storno_invoice
+
     end
   end
 end

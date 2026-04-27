@@ -25,13 +25,8 @@ module CorikaInvoices
     field :creditor_id, type: String
     field :country_id, type: String
 
-    def initialize(hash)
-      throw :contact_data_nil if hash.nil?
-      super
-
-      hash.each do |k, v|
-        public_send("#{k}=", v)
-      end
+    def initialize(attrs = nil, &block)
+      super(attrs, &block)
 
       self.company = INVOICE_CONFIG.payee.company
       self.company_short = INVOICE_CONFIG.payee.company_short

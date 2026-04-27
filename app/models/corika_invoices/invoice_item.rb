@@ -130,5 +130,12 @@ module CorikaInvoices
 
       hash
     end
+
+    def storno
+      self.count *= -1 unless self.count.nil?
+      self.item_taxes.each do |tax|
+        tax.storno
+      end
+    end
   end
 end

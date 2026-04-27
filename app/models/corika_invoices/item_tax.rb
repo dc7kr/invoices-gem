@@ -25,6 +25,9 @@ module CorikaInvoices
       it
     end
 
+    def storno
+    end
+
     def tax_amount
       (tax_rate / 100.0) * tax_basis
     end

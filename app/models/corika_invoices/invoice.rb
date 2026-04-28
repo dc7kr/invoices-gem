@@ -388,6 +388,9 @@ module CorikaInvoices
       end
       storno_invoice.reference_id = full_number
       storno_invoice.reference_date = invoice_date
+      storno_invoice.pdf_filename = nil
+      storno_invoice.number_suffix = ""
+      storno_invoice.number_format = nil
 
       storno_invoice
 

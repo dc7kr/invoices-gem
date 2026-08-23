@@ -1,0 +1,40 @@
+%h2=t("invoice_config.tax_rates")
+.row
+  .col-md-4=label :invoice_config, :taxrate
+  .col-md-8.font-monospace=config.taxrate
+.row.mb-5
+  .col-md-4=label :invoice_config, :taxrate_reduced
+  .col-md-8.font-monospace=config.taxrate_reduced
+
+%h2=t("invoice_config.dirs")
+.row
+  .col-md-4=label :invoice_config, :tool_dir
+  .col-md-8.font-monospace=config.tool_dir
+.row
+  .col-md-4=label :invoice_config, :input_dir
+  .col-md-8.font-monospace=config.input_dir
+.row
+  .col-md-4=label :invoice_config, :output_dir
+  .col-md-8.font-monospace=config.output_dir
+.row
+  .col-md-4=label :invoice_config, :archive_dir
+  .col-md-8.font-monospace=config.archive_dir
+.row
+  .col-md-4=label :invoice_config, :tool_dir
+  .col-md-8.font-monospace=config.tool_dir
+.row
+  .col-md-4=label :invoice_config, :tex_dir
+  .col-md-8.font-monospace=config.tex_dir
+.row
+  .col-md-4=label :invoice_config, :custom_dir
+  .col-md-8.font-monospace=config.custom_dir
+.row
+  .col-md-4=label :invoice_config, :fonts_dir
+  .col-md-8.font-monospace=config.fonts_dir
+.row
+  .col-md-4=label :invoice_config, :tex_bin
+  .col-md-8.font-monospace=config.tex_bin
+.mb-5
+%h2=t("corika_invoices.payee")
+=render partial: "corika_invoices/payee", locals: { payee: INVOICE_CONFIG.payee}
+  

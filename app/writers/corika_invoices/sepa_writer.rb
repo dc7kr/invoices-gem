@@ -96,6 +96,11 @@ module CorikaInvoices
     end
 
     def generate_file
+      if filename.nil?
+        Rails.logger.warn('No SEPA bookings - not generating empty file')
+        return nil
+      end
+
       outfile = CorikaInvoices::ArchiveFile.new(filename, filename, year.to_s)
       ensure_target_dir_exists(outfile.full_path)
 
